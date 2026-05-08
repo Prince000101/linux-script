@@ -1,405 +1,641 @@
 #!/bin/bash
 
-CYAN='\033[1;36m'
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-RED='\033[1;31m'
-NC='\033[0m'
+CYAN='\033[1;36m'; GREEN='\033[1;32m'; YELLOW='\033[1;33m'; RED='\033[1;31m'; BLUE='\033[1;34m'; NC='\033[0m'
 
-# ─── Package Database ─────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════════
+# PACKAGE DATABASE
+# ═══════════════════════════════════════════════════════════════════════════════
 # name|description|category|type:value
-# type: apt, snap, flatpak, pip, npm, script
-PACKAGES=(
+# type: apt, snap, flatpak, pip, npm, snap-classic, script
+
+PKGS=(
   "firefox|Firefox web browser|Browsers|apt:firefox"
   "chrome|Google Chrome web browser|Browsers|script"
   "chromium|Chromium open-source browser|Browsers|apt:chromium-browser"
-  "brave|Brave browser with built-in ad blocker|Browsers|script"
+  "brave|Brave browser with ad blocker|Browsers|script"
   "edge|Microsoft Edge browser|Browsers|apt:microsoft-edge-dev"
+  "opera|Opera browser|Browsers|script"
+  "vivaldi|Vivaldi browser|Browsers|script"
+  "tor-browser|Tor anonymized browser|Browsers|script"
 
-  "vlc|VLC media player|Media|apt:vlc"
-  "mpv|Lightweight video player|Media|apt:mpv"
-  "gimp|GNU Image Manipulation Program|Media|apt:gimp"
-  "inkscape|Vector graphics editor|Media|apt:inkscape"
-  "blender|3D creation suite|Media|snap:blender"
-  "obs|OBS Studio screen recorder|Media|apt:obs-studio"
-  "kdenlive|Video editor|Media|apt:kdenlive"
-  "audacity|Audio editor|Media|apt:audacity"
-  "handbrake|Video transcoder|Media|apt:handbrake"
-  "shotcut|Cross-platform video editor|Media|apt:shotcut"
-  "flameshot|Screenshot tool|Media|apt:flameshot"
-
-  "spotify|Spotify music streaming|Media|script"
+  "vlc|VLC media player|Media & Graphics|apt:vlc"
+  "mpv|Lightweight video player|Media & Graphics|apt:mpv"
+  "gimp|GNU Image Manipulation Program|Media & Graphics|apt:gimp"
+  "inkscape|Vector graphics editor|Media & Graphics|apt:inkscape"
+  "blender|3D creation suite|Media & Graphics|snap:blender"
+  "obs|OBS Studio screen recorder|Media & Graphics|apt:obs-studio"
+  "kdenlive|Video editor|Media & Graphics|apt:kdenlive"
+  "audacity|Audio editor|Media & Graphics|apt:audacity"
+  "handbrake|Video transcoder|Media & Graphics|apt:handbrake"
+  "shotcut|Cross-platform video editor|Media & Graphics|apt:shotcut"
+  "flameshot|Screenshot & annotation tool|Media & Graphics|apt:flameshot"
+  "krita|Digital painting & illustration|Media & Graphics|apt:krita"
+  "darktable|Photo workflow & raw developer|Media & Graphics|apt:darktable"
+  "pitivi|Video editor (GNOME)|Media & Graphics|apt:pitivi"
+  "rawtherapee|Raw image processor|Media & Graphics|apt:rawtherapee"
+  "peek|Simple GIF/video screen recorder|Media & Graphics|apt:peek"
+  "simplescreenrecorder|Simple screen recorder|Media & Graphics|apt:simplescreenrecorder"
+  "losslesscut|Lossless video trimming|Media & Graphics|snap:lossless-cut"
+  "mkvtoolnix|MKV video toolset|Media & Graphics|apt:mkvtoolnix"
+  "spotify|Spotify music streaming|Media & Graphics|script"
 
   "discord|Discord chat app|Communication|script"
   "telegram|Telegram messaging|Communication|snap:telegram-desktop"
   "slack|Slack workspace chat|Communication|snap:slack"
   "zoom|Zoom video conferencing|Communication|script"
   "whatsapp|WhatsApp desktop client|Communication|snap:whatsapp-for-linux"
+  "signal|Signal private messenger|Communication|script"
+  "element|Element Matrix chat client|Communication|apt:element-desktop"
 
   "code|Visual Studio Code editor|Development|script"
   "vscodium|VS Code without telemetry|Development|apt:vscodium"
-  "sublime|Sublime Text editor|Development|snap:sublime-text"
+  "sublime|Sublime Text 4 editor|Development|snap:sublime-text"
   "neovim|Modern Vim editor|Development|apt:neovim"
   "git|Git version control|Development|apt:git"
   "nodejs|Node.js JavaScript runtime|Development|script"
-  "python3|Python 3 programming language|Development|apt:python3"
+  "python3|Python 3 + pip|Development|apt:python3-pip"
   "docker|Docker container platform|Development|script"
-  "docker-compose|Docker Compose|Development|apt:docker-compose"
+  "docker-compose|Docker Compose|Development|apt:docker-compose-plugin"
   "postman|API testing tool|Development|snap:postman"
   "mysql-workbench|MySQL database GUI|Development|apt:mysql-workbench"
-  "jdk|Java Development Kit|Development|apt:default-jdk"
+  "mysql-server|MySQL database server|Development|apt:mysql-server"
+  "postgresql|PostgreSQL database|Development|apt:postgresql"
+  "sqlite3|SQLite database engine|Development|apt:sqlite3"
+  "redis|Redis cache & store|Development|apt:redis"
+  "php|PHP scripting language|Development|apt:php"
+  "composer|PHP dependency manager|Development|apt:composer"
+  "jdk|Java Development Kit (default)|Development|apt:default-jdk"
   "rust|Rust programming language|Development|script"
-  "go|Go programming language|Development|apt:golang-go"
-  "dotnet|.NET SDK|Development|script"
+  "go|Go programming language|Development|apt:golang"
+  "dotnet|.NET SDK 8.0|Development|script"
+  "flutter|Flutter UI framework|Development|snap:flutter"
+  "dart|Dart programming language|Development|apt:dart"
+  "kotlin|Kotlin programming language|Development|snap:kotlin"
+  "yarn|Yarn package manager|Development|apt:yarn"
+  "pnpm|pnpm package manager|Development|npm:pnpm"
+  "gcc|GNU C/C++ compiler|Development|apt:gcc"
+  "make|GNU Make build tool|Development|apt:make"
+  "cmake|Cross-platform build system|Development|apt:cmake"
+  "android-studio|Android Studio IDE|Development|snap:android-studio"
+  "godot|Godot game engine|Development|snap:godot"
+  "vagrant|Vagrant VM manager|Development|apt:vagrant"
+  "ansible|Ansible automation|Development|apt:ansible"
+  "terraform|Terraform infrastructure|Development|script"
+  "kubectl|Kubernetes CLI|Development|snap:kubectl"
+  "aws-cli|AWS command-line tools|Development|apt:awscli"
+  "gh|GitHub CLI|Development|snap:gh"
+  "jupyter|Jupyter notebook/lab|Development|pip:jupyterlab"
+  "elixir|Elixir programming language|Development|apt:elixir"
 
   "htop|Interactive process viewer|Utilities|apt:htop"
+  "btop|Modern resource monitor|Utilities|apt:btop"
   "neofetch|System info display|Utilities|apt:neofetch"
   "tmux|Terminal multiplexer|Utilities|apt:tmux"
   "fish|Friendly interactive shell|Utilities|apt:fish"
   "zsh|Z shell|Utilities|apt:zsh"
   "bat|Cat with syntax highlighting|Utilities|apt:bat"
   "tree|Directory tree viewer|Utilities|apt:tree"
-  "ripgrep|Fast text search tool|Utilities|apt:ripgrep"
+  "ripgrep|Ultra-fast text search|Utilities|apt:ripgrep"
+  "fd|Simple fast file find|Utilities|apt:fd-find"
+  "procs|Modern ps replacement|Utilities|snap:procs"
+  "duf|Disk usage utility|Utilities|apt:duf"
+  "dust|More intuitive du|Utilities|apt:dust"
+  "delta|Git diff viewer|Utilities|apt:git-delta"
+  "hyperfine|Command benchmarking|Utilities|apt:hyperfine"
+  "tldr|Simplified man pages|Utilities|pip:tldr"
+  "cheat|Cheat sheets for commands|Utilities|snap:cheat"
+  "jq|Command-line JSON processor|Utilities|apt:jq"
+  "yq|Command-line YAML processor|Utilities|snap:yq"
+  "fzf|Fuzzy command-line finder|Utilities|apt:fzf"
+  "ranger|Terminal file manager|Utilities|apt:ranger"
+  "nnn|Tiny terminal file manager|Utilities|apt:nnn"
+  "mc|Midnight Commander file manager|Utilities|apt:mc"
+  "screen|Terminal screen manager|Utilities|apt:screen"
+  "rsync|Fast file syncing tool|Utilities|apt:rsync"
+  "sshfs|SSH filesystem mount|Utilities|apt:sshfs"
   "curl|URL transfer tool|Utilities|apt:curl"
   "wget|File downloader|Utilities|apt:wget"
-  "tldr|Simplified man pages|Utilities|pip:tldr"
-  "btop|Modern resource monitor|Utilities|apt:btop"
-  "timeshift|System backup and restore|Utilities|apt:timeshift"
+  "unzip|Zip file extractor|Utilities|apt:unzip"
+  "unrar|RAR file extractor|Utilities|apt:unrar"
+  "p7zip|7-Zip file archiver|Utilities|apt:p7zip-full"
+  "glances|System monitoring dashboard|Utilities|pip:glances"
+  "timeshift|System backup & restore|Utilities|apt:timeshift"
+  "fonts-firacode|Fira Code font with ligatures|Utilities|apt:fonts-firacode"
 
   "steam|Steam gaming platform|Gaming|apt:steam"
   "lutris|Game manager for Linux|Gaming|apt:lutris"
   "heroic|Heroic Games Launcher (Epic/GOG)|Gaming|script"
+  "wine|Windows compatibility layer|Gaming|apt:wine"
+  "winetricks|Wine setup helper|Gaming|apt:winetricks"
+  "playonlinux|Wine frontend|Gaming|apt:playonlinux"
+  "gamemode|Game optimization daemon|Gaming|apt:gamemode"
+  "mangohud|Game overlay HUD|Gaming|apt:mangohud"
+  "minecraft|Minecraft Java Edition|Gaming|apt:minecraft-launcher"
 
   "keepassxc|Password manager|Security|apt:keepassxc"
   "veracrypt|Disk encryption|Security|apt:veracrypt"
+  "bitwarden|Bitwarden password manager|Security|snap:bitwarden"
+  "nmap|Network scanner|Security|apt:nmap"
+  "wireshark|Network protocol analyzer|Security|apt:wireshark"
+  "openssh|SSH server & client|Security|apt:openssh-server"
+  "gpg|GNU Privacy Guard|Security|apt:gnupg2"
+  "clamav|Antivirus scanner|Security|apt:clamav"
+  "fail2ban|Fail2ban intrusion prevention|Security|apt:fail2ban"
+  "ufw|Uncomplicated Firewall|Security|apt:ufw"
+  "rkhunter|Rootkit hunter scanner|Security|apt:rkhunter"
 
-  "libreoffice|Office suite|Productivity|apt:libreoffice"
-  "flameshot|Screenshot annotation tool|Productivity|apt:flameshot"
-  "obsidian|Knowledge base / note taking|Productivity|snap:obsidian"
-  "onlyoffice|Office suite compatible with MS formats|Productivity|apt:onlyoffice-desktopeditors"
+  "libreoffice|Full office suite|Productivity|apt:libreoffice"
+  "onlyoffice|Office suite (MS format compatible)|Productivity|apt:onlyoffice-desktopeditors"
+  "obsidian|Knowledge base / notes|Productivity|snap:obsidian"
+  "thunderbird|Email & calendar client|Productivity|apt:thunderbird"
+  "calibre|Ebook library manager|Productivity|apt:calibre"
+  "anki|Spaced repetition flash cards|Productivity|apt:anki"
+  "zotero|Reference manager|Productivity|apt:zotero"
+  "okular|Document viewer (PDF, etc.)|Productivity|apt:okular"
+  "goldendict|Dictionary lookup tool|Productivity|apt:goldendict-ng"
+  "foxitreader|Foxit PDF reader|Productivity|script"
 
-  "ffmpeg|Audio/video conversion tool|Tools|apt:ffmpeg"
+  "ffmpeg|Audio/video conversion|Tools|apt:ffmpeg"
   "yt-dlp|YouTube video downloader|Tools|pip:yt-dlp"
   "aria2|Ultra-fast download utility|Tools|apt:aria2"
   "virtualbox|Virtual machine manager|Tools|apt:virtualbox"
   "qemu|QEMU machine emulator|Tools|apt:qemu-system-x86"
+  "vagrant|Vagrant by HashiCorp|Tools|apt:vagrant"
 )
-# ─── Help ────────────────────────────────────────────────────────────────────
 
-show_help() {
-  echo -e "${CYAN}lget${NC} - Linux package manager (Chocolatey-like)"
-  echo ""
-  echo "Usage:"
-  echo "  lget install <pkg> [pkg...]   Install packages"
-  echo "  lget remove  <pkg> [pkg...]   Remove packages"
-  echo "  lget search  <query>          Search packages"
-  echo "  lget list                     List installed packages"
-  echo "  lget info    <pkg>            Show package info"
-  echo "  lget update                   Update system"
-  echo "  lget -h|--help                Show this help"
-  echo ""
-  echo -e "Run ${GREEN}lget search --all${NC} to see every available package."
-  exit 0
+# ═══════════════════════════════════════════════════════════════════════════════
+# HELPERS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+get_categories() {
+  local cats=()
+  for entry in "${PKGS[@]}"; do
+    IFS='|' read -r _ _ cat _ <<< "$entry"
+    local found=false
+    for c in "${cats[@]}"; do [ "$c" = "$cat" ] && found=true && break; done
+    $found || cats+=("$cat")
+  done
+  echo "${cats[@]}"
 }
 
-# ─── Package Lookup ──────────────────────────────────────────────────────────
+get_pkgs_by_cat() {
+  local cat="$1" out=()
+  for entry in "${PKGS[@]}"; do
+    IFS='|' read -r name desc cat2 _ <<< "$entry"
+    [ "$cat2" = "$cat" ] && out+=("$entry")
+  done
+  echo "${out[@]}"
+}
+
+get_cat_count() {
+  local cat="$1" count=0
+  for entry in "${PKGS[@]}"; do
+    IFS='|' read -r _ _ c _ <<< "$entry"
+    [ "$c" = "$cat" ] && ((count++))
+  done
+  echo "$count"
+}
 
 find_pkg() {
-  local name="$1"
-  for entry in "${PACKAGES[@]}"; do
-    IFS='|' read -r pkg_name pkg_desc pkg_cat pkg_src <<< "$entry"
-    if [ "$pkg_name" = "$name" ]; then
-      echo "$entry"
-      return 0
-    fi
+  for entry in "${PKGS[@]}"; do
+    IFS='|' read -r name _ _ _ <<< "$entry"
+    [ "$name" = "$1" ] && echo "$entry" && return 0
   done
   return 1
 }
 
-# ─── Install ─────────────────────────────────────────────────────────────────
-
-install_script_pkg() {
+is_installed() {
   local name="$1"
-  case "$name" in
-    chrome)
-      echo -e "${YELLOW}-> Installing Google Chrome...${NC}"
-      wget -q --show-progress -O /tmp/chrome.deb "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
-      sudo dpkg -i /tmp/chrome.deb 2>/dev/null
-      sudo apt install -f -y
-      ;;
-    brave)
-      echo -e "${YELLOW}-> Installing Brave Browser...${NC}"
-      sudo apt install -y curl
-      sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg 2>/dev/null
-      echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list >/dev/null
-      sudo apt update && sudo apt install -y brave-browser
-      ;;
-    discord)
-      echo -e "${YELLOW}-> Installing Discord...${NC}"
-      wget -q --show-progress -O /tmp/discord.deb "https://discord.com/api/download?platform=linux&format=deb"
-      sudo dpkg -i /tmp/discord.deb 2>/dev/null
-      sudo apt install -f -y
-      ;;
-    zoom)
-      echo -e "${YELLOW}-> Installing Zoom...${NC}"
-      wget -q --show-progress -O /tmp/zoom.deb "https://zoom.us/client/latest/zoom_amd64.deb"
-      sudo dpkg -i /tmp/zoom.deb 2>/dev/null
-      sudo apt install -f -y
-      ;;
-    spotify)
-      echo -e "${YELLOW}-> Installing Spotify...${NC}"
-      curl -sS https://download.spotify.com/debian/pubkey_6224F9941A8AA6D1.gpg | sudo gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/spotify.gpg 2>/dev/null
-      echo "deb http://repository.spotify.com stable non-free" | sudo tee /etc/apt/sources.list.d/spotify.list >/dev/null
-      sudo apt update && sudo apt install -y spotify-client
-      ;;
-    code)
-      echo -e "${YELLOW}-> Installing VS Code...${NC}"
-      wget -q --show-progress -O /tmp/code.deb "https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64"
-      sudo dpkg -i /tmp/code.deb 2>/dev/null
-      sudo apt install -f -y
-      ;;
-    docker)
-      echo -e "${YELLOW}-> Installing Docker...${NC}"
-      curl -fsSL https://get.docker.com | sh
-      sudo usermod -aG docker "$USER"
-      echo -e "${GREEN}  You may need to log out and back in for Docker group to take effect.${NC}"
-      ;;
-    nodejs)
-      echo -e "${YELLOW}-> Installing Node.js...${NC}"
-      curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-      sudo apt install -y nodejs
-      ;;
-    rust)
-      echo -e "${YELLOW}-> Installing Rust...${NC}"
-      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      echo -e "${GREEN}  Run 'source ~/.cargo/env' to use Rust immediately.${NC}"
-      ;;
-    dotnet)
-      echo -e "${YELLOW}-> Installing .NET SDK...${NC}"
-      wget -q --show-progress -O /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
-      sudo dpkg -i /tmp/packages-microsoft-prod.deb 2>/dev/null
-      sudo apt update && sudo apt install -y dotnet-sdk-8.0
-      ;;
-    heroic)
-      echo -e "${YELLOW}-> Installing Heroic Games Launcher...${NC}"
-      wget -q --show-progress -O /tmp/heroic.deb "https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/latest/download/heroic_2.15.2_amd64.deb"
-      sudo dpkg -i /tmp/heroic.deb 2>/dev/null
-      sudo apt install -f -y
-      ;;
-    *)
-      echo -e "${RED}  Unknown script-based package: $name${NC}"
-      return 1
-      ;;
+  local entry
+  entry=$(find_pkg "$name") || return 1
+  IFS='|' read -r _ _ _ src <<< "$entry"
+  IFS=':' read -r stype sval <<< "$src"
+  case "$stype" in
+    apt)   dpkg -s "$sval" 2>/dev/null | grep -q "Status: install ok installed" ;;
+    snap|snap-classic) snap list 2>/dev/null | grep -q "^$sval " ;;
+    pip)   pip show "$sval" 2>/dev/null | grep -q "Name" ;;
+    npm)   npm list -g "$sval" 2>/dev/null | grep -q "$sval" ;;
+    script) command -v "$name" &>/dev/null ;;
+    *) return 1 ;;
   esac
 }
 
-cmd_install() {
-  if [ $# -eq 0 ]; then
-    echo -e "${RED}Usage: lget install <package> [package...]${NC}"
-    exit 1
-  fi
-  for name in "$@"; do
-    entry=$(find_pkg "$name")
-    if [ -z "$entry" ]; then
-      echo -e "${RED}Unknown package: $name${NC}"
-      continue
-    fi
-    IFS='|' read -r pkg_name pkg_desc pkg_cat pkg_src <<< "$entry"
-    IFS=':' read -r src_type src_val <<< "$pkg_src"
+# ═══════════════════════════════════════════════════════════════════════════════
+# INSTALL / REMOVE ENGINE
+# ═══════════════════════════════════════════════════════════════════════════════
 
-    echo -e "${GREEN}Installing ${CYAN}$pkg_name${GREEN} - $pkg_desc${NC}"
-    case "$src_type" in
-      apt)
-        sudo apt install -y "$src_val" 2>&1 | tail -1
-        ;;
-      snap)
-        sudo snap install "$src_val" 2>&1 | tail -1
-        ;;
-      flatpak)
-        flatpak install -y flathub "$src_val" 2>&1 | tail -1
-        ;;
-      pip)
-        pip install "$src_val" 2>&1 | tail -1
-        ;;
-      npm)
-        npm install -g "$src_val" 2>&1 | tail -1
-        ;;
-      script)
-        install_script_pkg "$pkg_name"
-        ;;
-      *)
-        echo -e "${RED}  Unknown source type: $src_type${NC}"
-        ;;
-    esac
-    echo ""
-  done
-}
+install_one() {
+  local entry="$1"
+  IFS='|' read -r name desc cat src <<< "$entry"
+  IFS=':' read -r stype sval <<< "$src"
 
-# ─── Remove ──────────────────────────────────────────────────────────────────
-
-cmd_remove() {
-  if [ $# -eq 0 ]; then
-    echo -e "${RED}Usage: lget remove <package> [package...]${NC}"
-    exit 1
-  fi
-  for name in "$@"; do
-    entry=$(find_pkg "$name")
-    if [ -z "$entry" ]; then
-      echo -e "${RED}Unknown package: $name${NC}"
-      continue
-    fi
-    IFS='|' read -r pkg_name pkg_desc pkg_cat pkg_src <<< "$entry"
-    IFS=':' read -r src_type src_val <<< "$pkg_src"
-
-    echo -e "${YELLOW}Removing ${CYAN}$pkg_name${NC}"
-    case "$src_type" in
-      apt)  sudo apt remove -y "$src_val" ;;
-      snap) sudo snap remove "$src_val" ;;
-      flatpak) flatpak remove -y "$src_val" ;;
-      pip)  pip uninstall -y "$src_val" ;;
-      npm)  npm uninstall -g "$src_val" ;;
-      script)
-        echo -e "${YELLOW}  Script-installed packages must be removed manually.${NC}"
-        echo -e "${YELLOW}  Use: sudo apt remove <related-package>${NC}"
-        ;;
-    esac
-    echo ""
-  done
-}
-
-# ─── Search ──────────────────────────────────────────────────────────────────
-
-cmd_search() {
-  if [ "$1" = "--all" ] || [ "$1" = "-a" ]; then
-    echo -e "${CYAN}All available packages:${NC}\n"
-    local last_cat=""
-    for entry in "${PACKAGES[@]}"; do
-      IFS='|' read -r pkg_name pkg_desc pkg_cat pkg_src <<< "$entry"
-      if [ "$pkg_cat" != "$last_cat" ]; then
-        echo -e "${GREEN}--- $pkg_cat ---${NC}"
-        last_cat="$pkg_cat"
-      fi
-      printf "  ${CYAN}%-14s${NC} %s\n" "$pkg_name" "$pkg_desc"
-    done
-    echo ""
-    echo -e "${YELLOW}Total: ${#PACKAGES[@]} packages${NC}"
-    return
-  fi
-
-  if [ -z "$1" ]; then
-    echo -e "${RED}Usage: lget search <query>  or  lget search --all${NC}"
-    exit 1
-  fi
-
-  local query="$1"
-  local matches=0
-  echo -e "${CYAN}Search results for '$query':${NC}\n"
-
-  local last_cat=""
-  for entry in "${PACKAGES[@]}"; do
-    IFS='|' read -r pkg_name pkg_desc pkg_cat pkg_src <<< "$entry"
-    if echo "$pkg_name $pkg_desc" | grep -qi "$query"; then
-      if [ "$pkg_cat" != "$last_cat" ]; then
-        echo -e "${GREEN}--- $pkg_cat ---${NC}"
-        last_cat="$pkg_cat"
-      fi
-      printf "  ${CYAN}%-14s${NC} %s\n" "$pkg_name" "$pkg_desc"
-      ((matches++))
-    fi
-  done
-  [ "$matches" -eq 0 ] && echo "  No packages found."
   echo ""
-  echo -e "${YELLOW}$matches matches${NC}"
+  echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${GREEN}Installing:${NC} $name"
+  echo -e "${CYAN}Description:${NC} $desc"
+  echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+  case "$stype" in
+    apt)
+      sudo apt install -y "$sval" 2>&1 | tail -3
+      ;;
+    snap)
+      sudo snap install "$sval" 2>&1 | tail -1
+      ;;
+    snap-classic)
+      sudo snap install "$sval" --classic 2>&1 | tail -1
+      ;;
+    pip)
+      pip install "$sval" 2>&1 | tail -1
+      ;;
+    npm)
+      npm install -g "$sval" 2>&1 | tail -1
+      ;;
+    script)
+      case "$name" in
+        chrome)
+          wget -q --show-progress -O /tmp/chrome.deb "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+          sudo dpkg -i /tmp/chrome.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -1 ;;
+        brave)
+          sudo apt install -y curl 2>/dev/null
+          sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg 2>/dev/null
+          echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list >/dev/null
+          sudo apt update && sudo apt install -y brave-browser 2>&1 | tail -1 ;;
+        opera)
+          wget -q --show-progress -O /tmp/opera.deb "https://download.opera.com/download/get/?partner=www&opsys=Linux"
+          sudo dpkg -i /tmp/opera.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -1 ;;
+        vivaldi)
+          wget -q --show-progress -O /tmp/vivaldi.deb "https://downloads.vivaldi.com/stable/vivaldi-stable_amd64.deb"
+          sudo dpkg -i /tmp/vivaldi.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -1 ;;
+        tor-browser)
+          sudo apt install -y torbrowser-launcher 2>&1 | tail -1 ;;
+        discord)
+          wget -q --show-progress -O /tmp/discord.deb "https://discord.com/api/download?platform=linux&format=deb"
+          sudo dpkg -i /tmp/discord.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -1 ;;
+        zoom)
+          wget -q --show-progress -O /tmp/zoom.deb "https://zoom.us/client/latest/zoom_amd64.deb"
+          sudo dpkg -i /tmp/zoom.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -1 ;;
+        spotify)
+          curl -sS https://download.spotify.com/debian/pubkey_6224F9941A8AA6D1.gpg | sudo gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/spotify.gpg 2>/dev/null
+          echo "deb http://repository.spotify.com stable non-free" | sudo tee /etc/apt/sources.list.d/spotify.list >/dev/null
+          sudo apt update && sudo apt install -y spotify-client 2>&1 | tail -1 ;;
+        signal)
+          wget -qO- https://updates.signal.org/desktop/apt/keys.asc | sudo gpg --dearmor --yes -o /usr/share/keyrings/signal-desktop-keyring.gpg 2>/dev/null
+          echo "deb [signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main" | sudo tee /etc/apt/sources.list.d/signal-xenial.list >/dev/null
+          sudo apt update && sudo apt install -y signal-desktop 2>&1 | tail -1 ;;
+        code)
+          wget -q --show-progress -O /tmp/code.deb "https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64"
+          sudo dpkg -i /tmp/code.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -1 ;;
+        nodejs)
+          curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - 2>&1 | tail -1
+          sudo apt install -y nodejs 2>&1 | tail -1 ;;
+        docker)
+          curl -fsSL https://get.docker.com | sh 2>&1 | tail -3
+          sudo usermod -aG docker "$USER" 2>/dev/null
+          echo -e "${YELLOW}  -> Log out & back in for Docker group to work.${NC}" ;;
+        rust)
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y 2>&1 | tail -3
+          echo -e "${YELLOW}  -> Run: source ~/.cargo/env${NC}" ;;
+        dotnet)
+          wget -q --show-progress -O /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
+          sudo dpkg -i /tmp/packages-microsoft-prod.deb 2>/dev/null
+          sudo apt update && sudo apt install -y dotnet-sdk-8.0 2>&1 | tail -1 ;;
+        terraform)
+          wget -qO- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg 2>/dev/null
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list >/dev/null
+          sudo apt update && sudo apt install -y terraform 2>&1 | tail -1 ;;
+        heroic)
+          wget -q --show-progress -O /tmp/heroic.deb "https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/latest/download/heroic_2.15.2_amd64.deb"
+          sudo dpkg -i /tmp/heroic.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -1 ;;
+        minecraft)
+          sudo apt install -y minecraft-launcher 2>&1 | tail -1 ;;
+        foxitreader)
+          wget -q --show-progress -O /tmp/foxit.deb "https://cdn01.foxitsoftware.com/pub/foxit/reader/desktop/linux/2.x/2.4/en_us/FoxitReader.2.4.5.0727.x64.deb"
+          sudo dpkg -i /tmp/foxit.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -1 ;;
+        *)
+          echo -e "${RED}  No custom installer for $name${NC}" ;;
+      esac
+      ;;
+  esac
+  echo ""
 }
 
-# ─── List Installed ──────────────────────────────────────────────────────────
+remove_one() {
+  local entry="$1"
+  IFS='|' read -r name _ _ src <<< "$entry"
+  IFS=':' read -r stype sval <<< "$src"
+  case "$stype" in
+    apt)   sudo apt remove -y "$sval" 2>&1 | tail -1 ;;
+    snap|snap-classic) sudo snap remove "$sval" 2>&1 | tail -1 ;;
+    pip)   pip uninstall -y "$sval" 2>&1 | tail -1 ;;
+    npm)   npm uninstall -g "$sval" 2>&1 | tail -1 ;;
+    script) echo -e "${YELLOW}  $name was script-installed. Remove manually.${NC}" ;;
+  esac
+}
 
-cmd_list() {
-  echo -e "${CYAN}Installed packages:${NC}\n"
-  local count=0
-  for entry in "${PACKAGES[@]}"; do
-    IFS='|' read -r pkg_name pkg_desc pkg_cat pkg_src <<< "$entry"
-    IFS=':' read -r src_type src_val <<< "$pkg_src"
+# ═══════════════════════════════════════════════════════════════════════════════
+# INTERACTIVE UI
+# ═══════════════════════════════════════════════════════════════════════════════
 
-    local installed=false
-    case "$src_type" in
-      apt)   dpkg -s "$src_val" 2>/dev/null | grep -q "Status: install ok installed" && installed=true ;;
-      snap)  snap list 2>/dev/null | grep -q "^$src_val " ;;
-      pip)   pip show "$src_val" 2>/dev/null | grep -q "Name" ;;
-      npm)   npm list -g "$src_val" 2>/dev/null | grep -q "$src_val" ;;
-      script)
-        command -v "$pkg_name" &>/dev/null && installed=true
+show_banner() {
+  clear
+  echo -e "${CYAN}┌─────────────────────────────────────────────────────────┐${NC}"
+  echo -e "${GREEN}│               LGET - Linux Package Manager              │${NC}"
+  echo -e "${CYAN}│          Chocolatey-style for Linux Mint ${NC}"
+  echo -e "${CYAN}└─────────────────────────────────────────────────────────┘${NC}"
+  echo ""
+}
+
+show_cat_menu() {
+  local cat="$1"
+  local entries=($(get_pkgs_by_cat "$cat"))
+  local total=${#entries[@]}
+  local cols=2
+  local rows=$(( (total + cols - 1) / cols ))
+
+  while true; do
+    show_banner
+    echo -e "${YELLOW}  Category:${NC} $cat  ${CYAN}[$total packages]${NC}"
+    echo ""
+
+    for i in $(seq 0 $((total - 1))); do
+      IFS='|' read -r name desc _ _ <<< "${entries[$i]}"
+      local mark=" "
+      is_installed "$name" && mark="${GREEN}✓${NC}"
+      printf "  %s %-2s ${CYAN}%-14s${NC} %-35s" "$mark" "[$((i+1))]" "$name" "$desc"
+      # Print second column
+      local j=$((i + rows))
+      if [ "$j" -lt "$total" ]; then
+        IFS='|' read -r name2 desc2 _ _ <<< "${entries[$j]}"
+        local mark2=" "
+        is_installed "$name2" && mark2="${GREEN}✓${NC}"
+        printf "%s %-2s ${CYAN}%-14s${NC} %s" "$mark2" "[$((j+1))]" "$name2" "$desc2"
+      fi
+      echo ""
+      [ "$((i % rows))" -eq $((rows - 1)) ] || [ "$i" -eq $((total - 1)) ] && [ "$j" -lt "$total" ] && echo "" # spacer between rows
+      [ "$((i % rows))" -eq $((rows - 1)) ] || [ "$i" -eq $((total - 1)) ] && [ "$j" -ge "$total" ] && echo "" # spacer between rows
+    done
+
+    echo ""
+    echo -e "${YELLOW}  Enter numbers to install (e.g. 1 3 5-8)${NC}"
+    echo -e "  ${GREEN}[b]${NC} Back to categories  ${GREEN}[q]${NC} Quit"
+    echo ""
+    read -p "  Choice: " input
+
+    [ "$input" = "q" ] && clear && exit 0
+    [ "$input" = "b" ] && return
+
+    # Parse selection: "1 3 5-8" → install those packages
+    local selected=()
+    for part in $input; do
+      if echo "$part" | grep -qE '^[0-9]+-[0-9]+$'; then
+        local start="${part%-*}" end="${part#*-}"
+        for n in $(seq "$start" "$end"); do
+          [ "$n" -ge 1 ] && [ "$n" -le "$total" ] && selected+=("$n")
+        done
+      elif [ "$part" -ge 1 ] 2>/dev/null && [ "$part" -le "$total" ] 2>/dev/null; then
+        selected+=("$part")
+      fi
+    done
+
+    if [ ${#selected[@]} -gt 0 ]; then
+      local names=()
+      for n in "${selected[@]}"; do
+        IFS='|' read -r name _ _ _ <<< "${entries[$((n-1))]}"
+        names+=("$name")
+      done
+      echo ""
+      echo -e "${YELLOW}Installing:${NC} ${names[*]}"
+      read -p "Proceed? [Y/n]: " confirm
+      [[ "$confirm" =~ ^[nN] ]] && continue
+      for n in "${selected[@]}"; do
+        install_one "${entries[$((n-1))]}"
+      done
+      read -p "Press Enter..."
+    fi
+  done
+}
+
+show_main_menu() {
+  local categories=($(get_categories))
+  local cat_count=${#categories[@]}
+
+  while true; do
+    show_banner
+
+    echo -e "${YELLOW}  Browse packages by category:${NC}"
+    echo ""
+
+    for i in $(seq 0 $((cat_count - 1))); do
+      local c="${categories[$i]}"
+      local cnt=$(get_cat_count "$c")
+      printf "  [${GREEN}%d${NC}]  ${CYAN}%-22s${NC} ${YELLOW}(%d packages)${NC}\n" $((i+1)) "$c" "$cnt"
+    done
+
+    echo ""
+    echo -e "  [${GREEN}s${NC}]  Search all packages"
+    echo -e "  [${GREEN}i${NC}]  Show installed packages"
+    echo -e "  [${GREEN}u${NC}]  System update & cleanup"
+    echo -e "  [${GREEN}h${NC}]  Help & usage"
+    echo -e "  [${GREEN}q${NC}]  Quit"
+    echo ""
+    read -p "  Choice: " choice
+
+    case "$choice" in
+      q|Q) clear; exit 0 ;;
+      h|H) show_help; read -p "Press Enter..." ;;
+      u|U) system_update; read -p "Press Enter..." ;;
+      i|I) show_installed; read -p "Press Enter..." ;;
+      s|S) interactive_search; read -p "Press Enter..." ;;
+      *)
+        if [ "$choice" -ge 1 ] 2>/dev/null && [ "$choice" -le "$cat_count" ] 2>/dev/null; then
+          show_cat_menu "${categories[$((choice-1))]}"
+        fi
         ;;
     esac
+  done
+}
 
-    if $installed; then
-      printf "  ${GREEN}✓${NC} ${CYAN}%-14s${NC} %s\n" "$pkg_name" "$pkg_desc"
+show_installed() {
+  show_banner
+  echo -e "${YELLOW}  Installed Packages:${NC}"
+  echo ""
+  local count=0
+  for entry in "${PKGS[@]}"; do
+    IFS='|' read -r name desc _ _ <<< "$entry"
+    if is_installed "$name"; then
+      printf "  ${GREEN}✓${NC} ${CYAN}%-14s${NC} %s\n" "$name" "$desc"
       ((count++))
     fi
   done
-  [ "$count" -eq 0 ] && echo "  No packages from lget database are installed yet."
+  [ "$count" -eq 0 ] && echo "  No packages from the database are installed yet."
   echo ""
-  echo -e "${YELLOW}$count installed${NC}"
+  echo -e "${YELLOW}  Total: $count installed${NC}"
 }
 
-# ─── Info ─────────────────────────────────────────────────────────────────────
+interactive_search() {
+  read -p "  Search: " query
+  [ -z "$query" ] && return
+  show_banner
+  echo -e "${YELLOW}  Results for '$query':${NC}"
+  echo ""
+  local matches=0
+  for entry in "${PKGS[@]}"; do
+    IFS='|' read -r name desc cat _ <<< "$entry"
+    if echo "$name $desc" | grep -qi "$query"; then
+      local mark=" "
+      is_installed "$name" && mark="${GREEN}✓${NC}"
+      printf "  %s ${CYAN}%-14s${NC} %s  ${YELLOW}[%s]${NC}\n" "$mark" "$name" "$desc" "$cat"
+      ((matches++))
+    fi
+  done
+  [ "$matches" -eq 0 ] && echo "  No matches."
+  echo ""
+  echo -e "${YELLOW}  $matches matches${NC}"
+  echo ""
+  read -p "  Install any? (enter names, or blank): " install_names
+  [ -z "$install_names" ] && return
+  for name in $install_names; do
+    entry=$(find_pkg "$name") && install_one "$entry"
+  done
+}
+
+system_update() {
+  show_banner
+  echo -e "${YELLOW}  System Update${NC}"
+  echo ""
+  echo -e "${GREEN}[1/4]${NC} Updating APT package lists..."
+  sudo apt update -qq
+  echo -e "${GREEN}[2/4]${NC} Upgrading packages..."
+  sudo apt upgrade -y 2>&1 | tail -1
+  echo -e "${GREEN}[3/4]${NC} Removing unused packages..."
+  sudo apt autoremove -y 2>&1 | tail -1
+  echo -e "${GREEN}[4/4]${NC} Updating Snap packages..."
+  sudo snap refresh 2>/dev/null || echo "  Snap not installed."
+  echo ""
+  echo -e "${GREEN}  System is up to date!${NC}"
+}
+
+show_help() {
+  show_banner
+  echo -e "${YELLOW}  LGET - Linux Package Manager${NC}"
+  echo ""
+  echo "  Interactive mode (default):"
+  echo "    lget              Browse categories and install packages"
+  echo ""
+  echo "  Command-line mode:"
+  echo "    lget install <pkg> [pkg...]   Install packages"
+  echo "    lget remove  <pkg>            Remove a package"
+  echo "    lget search  <query>          Search packages"
+  echo "    lget search --all             List all packages"
+  echo "    lget list                     Show installed packages"
+  echo "    lget info    <pkg>            Package details"
+  echo "    lget update                   System update"
+  echo ""
+  echo "  Examples:"
+  echo "    lget install firefox vlc code"
+  echo "    lget search browser"
+  echo "    lget info git"
+  echo ""
+  echo "  Quick aliases (after install):"
+  echo "    lin <pkg>     = lget install"
+  echo "    lrm <pkg>     = lget remove"
+  echo "    lse <query>   = lget search"
+  echo "    ll            = lget list"
+  echo "    li <pkg>      = lget info"
+  echo "    lup           = lget update"
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CLI COMMANDS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+cmd_install() {
+  [ $# -eq 0 ] && echo -e "${RED}Usage: lget install <pkg> [pkg...]${NC}" && exit 1
+  for name in "$@"; do
+    entry=$(find_pkg "$name")
+    [ -z "$entry" ] && echo -e "${RED}Unknown: $name${NC}" && continue
+    install_one "$entry"
+  done
+}
+
+cmd_remove() {
+  [ $# -eq 0 ] && echo -e "${RED}Usage: lget remove <pkg>${NC}" && exit 1
+  for name in "$@"; do
+    entry=$(find_pkg "$name")
+    [ -z "$entry" ] && echo -e "${RED}Unknown: $name${NC}" && continue
+    remove_one "$entry"
+  done
+}
+
+cmd_search() {
+  local query="${*:-}"
+  if [ "$query" = "--all" ] || [ "$query" = "-a" ]; then
+    local last=""
+    for entry in "${PKGS[@]}"; do
+      IFS='|' read -r name desc cat _ <<< "$entry"
+      [ "$cat" != "$last" ] && echo -e "\n${GREEN}--- $cat ---${NC}" && last="$cat"
+      printf "  ${CYAN}%-14s${NC} %s\n" "$name" "$desc"
+    done
+    echo ""
+    echo -e "${YELLOW}Total: ${#PKGS[@]} packages${NC}"
+    return
+  fi
+  [ -z "$query" ] && echo -e "${RED}Usage: lget search <query>  or  lget search --all${NC}" && exit 1
+  local matches=0 last=""
+  echo -e "${CYAN}Search results for '$query':${NC}"
+  for entry in "${PKGS[@]}"; do
+    IFS='|' read -r name desc cat _ <<< "$entry"
+    if echo "$name $desc" | grep -qi "$query"; then
+      [ "$cat" != "$last" ] && echo -e "\n${GREEN}--- $cat ---${NC}" && last="$cat"
+      printf "  ${CYAN}%-14s${NC} %s\n" "$name" "$desc"
+      ((matches++))
+    fi
+  done
+  [ "$matches" -eq 0 ] && echo "  No matches."
+  echo -e "\n${YELLOW}$matches matches${NC}"
+}
+
+cmd_list() {
+  local count=0
+  echo -e "${CYAN}Installed packages:${NC}"
+  for entry in "${PKGS[@]}"; do
+    IFS='|' read -r name desc _ _ <<< "$entry"
+    if is_installed "$name"; then
+      printf "  ${GREEN}✓${NC} ${CYAN}%-14s${NC} %s\n" "$name" "$desc"
+      ((count++))
+    fi
+  done
+  [ "$count" -eq 0 ] && echo "  None installed from database."
+  echo -e "\n${YELLOW}$count installed${NC}"
+}
 
 cmd_info() {
   [ -z "$1" ] && echo -e "${RED}Usage: lget info <package>${NC}" && exit 1
   entry=$(find_pkg "$1")
-  if [ -z "$entry" ]; then
-    echo -e "${RED}Unknown package: $1${NC}"
-    exit 1
-  fi
-  IFS='|' read -r pkg_name pkg_desc pkg_cat pkg_src <<< "$entry"
-  IFS=':' read -r src_type src_val <<< "$pkg_src"
-
-  local installed=false
-  case "$src_type" in
-    apt)   dpkg -s "$src_val" 2>/dev/null | grep -q "Status: install ok installed" && installed=true ;;
-    snap)  snap list 2>/dev/null | grep -q "^$src_val " ;;
-    pip)   pip show "$src_val" 2>/dev/null | grep -q "Name" ;;
-    npm)   npm list -g "$src_val" 2>/dev/null | grep -q "$src_val" ;;
-    script) command -v "$pkg_name" &>/dev/null && installed=true ;;
-  esac
-
-  echo -e "${CYAN}Package:${NC}      $pkg_name"
-  echo -e "${CYAN}Description:${NC}  $pkg_desc"
-  echo -e "${CYAN}Category:${NC}     $pkg_cat"
-  echo -e "${CYAN}Source:${NC}       $src_type ($src_val)"
-  echo -e "${CYAN}Installed:${NC}    $([ "$installed" = true ] && echo "${GREEN}Yes${NC}" || echo "${RED}No${NC}")"
-  [ "$installed" = true ] && echo -e "${CYAN}Location:${NC}     $(which "$pkg_name" 2>/dev/null || echo 'in PATH')"
+  [ -z "$entry" ] && echo -e "${RED}Unknown: $1${NC}" && exit 1
+  IFS='|' read -r name desc cat src <<< "$entry"
+  IFS=':' read -r stype sval <<< "$src"
+  local installed="No"; is_installed "$name" && installed="Yes"
+  echo -e "${CYAN}Package:${NC}      $name"
+  echo -e "${CYAN}Description:${NC}  $desc"
+  echo -e "${CYAN}Category:${NC}     $cat"
+  echo -e "${CYAN}Source:${NC}       $stype ($sval)"
+  echo -e "${CYAN}Installed:${NC}    $([ "$installed" = "Yes" ] && echo "${GREEN}Yes${NC}" || echo "${RED}No${NC}")"
+  [ "$installed" = "Yes" ] && echo -e "${CYAN}Location:${NC}     $(which "$name" 2>/dev/null || echo 'in PATH')"
 }
 
-# ─── Update ──────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN
+# ═══════════════════════════════════════════════════════════════════════════════
 
-cmd_update() {
-  echo -e "${YELLOW}System Update${NC}"
-  echo ""
-  echo -e "${GREEN}[1/4]${NC} Updating APT package lists..."
-  sudo apt update
-  echo ""
-  echo -e "${GREEN}[2/4]${NC} Upgrading APT packages..."
-  sudo apt upgrade -y
-  echo ""
-  echo -e "${GREEN}[3/4]${NC} Removing unused packages..."
-  sudo apt autoremove -y
-  echo ""
-  echo -e "${GREEN}[4/4]${NC} Updating Snap packages..."
-  sudo snap refresh 2>/dev/null || echo "  Snap not installed, skipping."
-  echo ""
-  echo -e "${GREEN}System update complete.${NC}"
-}
-
-# ─── Main ────────────────────────────────────────────────────────────────────
-
-case "${1:-help}" in
-  install|i)     shift; cmd_install "$@" ;;
+case "${1:-}" in
+  install|i)      shift; cmd_install "$@" ;;
   remove|rm|uninstall) shift; cmd_remove "$@" ;;
-  search|s|find) shift; cmd_search "$*" ;;
-  list|l)        cmd_list ;;
-  info|show)     cmd_info "$2" ;;
-  update|up|upgrade) cmd_update ;;
-  help|-h|--help|"") show_help ;;
-  *) echo -e "${RED}Unknown command: $1${NC}"; show_help ;;
+  search|s|find)  shift; cmd_search "$*" ;;
+  list|l)         cmd_list ;;
+  info|show)      cmd_info "$2" ;;
+  update|up|upgrade) system_update ;;
+  help|-h|--help) show_help ;;
+  *)              show_main_menu ;;
 esac

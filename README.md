@@ -1,73 +1,83 @@
 # Linux Script
 
-A Chocolatey-like package manager and toolkit for Linux Mint (Ubuntu/Debian).  
-Install software, manage your system, and run tools — all from the terminal.
+A Chocolatey-like package manager and system toolkit for **Linux Mint** (Ubuntu/Debian).  
+Browse 150+ packages by category, install with a number picker — all from the terminal.
 
 ---
 
-## Installation
+## Quick Start
 
 ```bash
 git clone https://github.com/Prince000101/linux-script
 cd linux-script
 bash install.sh
 source ~/.bashrc
+lget
 ```
 
 ---
 
-## Commands
+## `lget` — Interactive Package Manager
 
-### `lget` — Package Manager (Chocolatey-like)
+Run `lget` with no arguments to open the **interactive menu**:
+
+```
+┌─────────────────────────────────────────────────────┐
+│            LGET - Linux Package Manager              │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Browse packages by category:                       │
+│                                                     │
+│  [1] Browsers                (8 packages)           │
+│  [2] Media & Graphics       (20 packages)           │
+│  [3] Communication           (7 packages)           │
+│  [4] Development            (35 packages)           │
+│  [5] Utilities              (33 packages)           │
+│  [6] Gaming                  (9 packages)           │
+│  [7] Security               (11 packages)           │
+│  [8] Productivity           (10 packages)           │
+│  [9] Tools                   (6 packages)           │
+│                                                     │
+│  [s] Search all packages                            │
+│  [i] Show installed packages                        │
+│  [u] System update & cleanup                        │
+│  [q] Quit                                           │
+│                                                     │
+│  Choice: _                                          │
+└─────────────────────────────────────────────────────┘
+```
+
+Select a category → see all packages → enter numbers to install:
+
+```
+  Category: Development                  [35 packages]
+
+  [1] git          Git version control      [2] code         VS Code editor
+  [3] nodejs       Node.js runtime          [4] docker       Docker platform
+  [5] python3      Python 3 + pip           [6] neovim       Modern Vim
+  ...
+
+  Enter numbers to install (e.g. 1 3 5-8)
+  [b] Back    [q] Quit
+
+  Choice: 1 3 4
+```
+
+### CLI Mode
+
+For power users, `lget` also works as a command-line tool:
 
 | Command | What it does |
 |---------|-------------|
-| `lget install <pkg>` | Install one or more packages |
+| `lget install firefox vlc code` | Install multiple packages |
 | `lget remove <pkg>` | Remove a package |
-| `lget search <query>` | Search for packages |
-| `lget search --all` | List every available package |
-| `lget list` | Show which packages are installed |
-| `lget info <pkg>` | Show package details |
-| `lget update` | Full system update (apt + snap) |
-| `lget -h` | Show help |
+| `lget search <query>` | Search packages |
+| `lget search --all` | Show every package |
+| `lget list` | Show installed packages |
+| `lget info <pkg>` | Package details |
+| `lget update` | System update |
 
-Install multiple packages at once:
-```bash
-lget install firefox vlc code discord steam
-```
-
-Search for packages:
-```bash
-lget search browser
-lget search --all          # Everything available
-```
-
-Package info:
-```bash
-lget info git
-```
-
-### `ltool` — Toolkit
-
-| Command | What it does |
-|---------|-------------|
-| `ltool` | Interactive menu |
-| `ltool update` | System update & cleanup |
-| `ltool info` | Show system information |
-| `ltool dev` | Install development stack |
-| `ltool media` | Install media tools |
-| `ltool gaming` | Install gaming tools |
-| `ltool -h` | Show help |
-
-### `lhelp` — Help
-
-```
-lhelp     Show all commands and usage
-```
-
----
-
-## Quick Aliases
+### Quick Aliases
 
 | Alias | Full command |
 |-------|-------------|
@@ -80,50 +90,55 @@ lhelp     Show all commands and usage
 
 ---
 
-## Available Packages (70+)
+## `ltool` — System Toolkit
 
-| Category | Packages |
-|----------|----------|
-| **Browsers** | firefox, chrome, chromium, brave, edge |
-| **Media** | vlc, mpv, gimp, inkscape, blender, obs, kdenlive, audacity, handbrake, shotcut, flameshot, spotify |
-| **Communication** | discord, telegram, slack, zoom, whatsapp |
-| **Development** | code, vscodium, sublime, neovim, git, nodejs, python3, docker, docker-compose, postman, mysql-workbench, jdk, rust, go, dotnet |
-| **Utilities** | htop, neofetch, tmux, fish, zsh, bat, tree, ripgrep, curl, wget, tldr, btop, timeshift |
-| **Gaming** | steam, lutris, heroic |
-| **Security** | keepassxc, veracrypt |
-| **Productivity** | libreoffice, obsidian, onlyoffice |
-| **Tools** | ffmpeg, yt-dlp, aria2, virtualbox, qemu |
+| Command | What it does |
+|---------|-------------|
+| `ltool` | Interactive menu |
+| `ltool update` | System update & cleanup |
+| `ltool info` | System info (CPU, RAM, disk, uptime) |
+| `ltool dev` | Install dev stack (git, node, docker, vscode) |
+| `ltool media` | Install media tools (ffmpeg, vlc, yt-dlp) |
+| `ltool gaming` | Install gaming tools (steam, lutris) |
 
 ---
 
-## How It Works
+## Available Packages (150+)
 
-Behind the scenes:
-
-- **apt** — Standard Debian/Ubuntu/Mint packages (most common)
-- **snap** — Snap packages (blender, spotify, postman, etc.)
-- **script** — Custom installers for packages that need special handling
-- **pip / npm** — Python and Node.js packages
-
-Each package is defined in a database inside the `lget` script with its name, description, category, and install method.
+| Category | Count | Packages |
+|----------|-------|----------|
+| **Browsers** | 8 | firefox, chrome, chromium, brave, edge, opera, vivaldi, tor-browser |
+| **Media & Graphics** | 20 | vlc, mpv, gimp, inkscape, blender, obs, kdenlive, audacity, handbrake, shotcut, flameshot, krita, darktable, pitivi, rawtherapee, peek, simplescreenrecorder, losslesscut, mkvtoolnix, spotify |
+| **Communication** | 7 | discord, telegram, slack, zoom, whatsapp, signal, element |
+| **Development** | 35 | code, vscodium, sublime, neovim, git, nodejs, python3, docker, docker-compose, postman, mysql-workbench, mysql-server, postgresql, sqlite3, redis, php, composer, jdk, rust, go, dotnet, flutter, dart, kotlin, yarn, pnpm, gcc, make, cmake, android-studio, godot, vagrant, ansible, terraform, kubectl, aws-cli, gh, jupyter, elixir |
+| **Utilities** | 33 | htop, btop, neofetch, tmux, fish, zsh, bat, tree, ripgrep, fd, procs, duf, dust, delta, hyperfine, tldr, cheat, jq, yq, fzf, ranger, nnn, mc, screen, rsync, sshfs, curl, wget, unzip, unrar, p7zip, glances, timeshift, fonts-firacode |
+| **Gaming** | 9 | steam, lutris, heroic, wine, winetricks, playonlinux, gamemode, mangohud, minecraft |
+| **Security** | 11 | keepassxc, veracrypt, bitwarden, nmap, wireshark, openssh, gpg, clamav, fail2ban, ufw, rkhunter |
+| **Productivity** | 10 | libreoffice, onlyoffice, obsidian, thunderbird, calibre, anki, zotero, okular, goldendict, foxitreader |
+| **Tools** | 6 | ffmpeg, yt-dlp, aria2, virtualbox, qemu, vagrant |
 
 ---
 
-## Requirements
+## Install Methods
 
-- Linux Mint (or Ubuntu/Debian-based distro)
-- sudo access
-- curl, wget (installed automatically)
+| Method | Description | Example packages |
+|--------|-------------|-----------------|
+| **apt** | Native Debian packages | firefox, vlc, git, htop |
+| **snap** | Snap packages | blender, spotify, postman |
+| **script** | Custom install scripts | chrome, discord, docker, nodejs |
+| **pip** | Python packages | yt-dlp, tldr, glances |
+| **npm** | Node.js packages | pnpm |
+
+---
 
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
-| `sudo: command not found` | Install sudo: `apt install sudo` |
-| Package not found | Run `lget search --all` to see available packages |
-| Script-based install fails | The package may need updated URLs — open an issue |
-| Completions not working | Run `source ~/.bashrc` or restart terminal |
-| Aliases not working | Run `source ~/.bashrc` |
+| `sudo: command not found` | `apt install sudo` |
+| Package not found | `lget search --all` to see all packages |
+| Script install fails | URLs may change — open a GitHub issue |
+| Aliases not working | `source ~/.bashrc` |
 
 ---
 
@@ -134,15 +149,4 @@ Each package is defined in a database inside the `lget` script with its name, de
 
 ---
 
-## Credits
-
-| Tool | Purpose |
-|------|---------|
-| [apt](https://wiki.debian.org/Apt) | Package management backend |
-| [snap](https://snapcraft.io/) | Snap package support |
-| [yt-dlp](https://github.com/yt-dlp/yt-dlp) | Video downloading |
-| [ani-cli](https://github.com/pystardust/ani-cli) | Anime streaming |
-
----
-
-*Built for simplicity. Inspired by Chocolatey for Windows.*
+*Inspired by Chocolatey for Windows. Built for simplicity.*

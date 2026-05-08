@@ -23,6 +23,21 @@ bash uninstall.sh
 source ~/.bashrc
 ```
 
+### Upgrade
+
+```bash
+cd linux-script
+bash upgrade.sh
+source ~/.bashrc
+```
+
+The upgrade script will:
+1. Pull the latest code from GitHub
+2. Compare checksums — only update scripts that actually changed
+3. Update bash completions and aliases if needed
+4. Verify all dependencies are installed
+5. Restore any local changes you made
+
 ---
 
 ## `lget` — Interactive Package Manager

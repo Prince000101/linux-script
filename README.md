@@ -15,6 +15,14 @@ source ~/.bashrc
 lget
 ```
 
+### Uninstall
+
+```bash
+cd linux-script
+bash uninstall.sh
+source ~/.bashrc
+```
+
 ---
 
 ## `lget` — Interactive Package Manager

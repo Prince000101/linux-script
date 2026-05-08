@@ -1,0 +1,67 @@
+#!/bin/bash
+
+CYAN='\033[1;36m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+RED='\033[1;31m'
+NC='\033[0m'
+
+echo -e "${CYAN}=========================================================${NC}"
+echo -e "${GREEN}            Linux Script - Help                           ${NC}"
+echo -e "${CYAN}=========================================================${NC}"
+echo ""
+
+echo -e "${YELLOW}OVERVIEW${NC}"
+echo "  A Chocolatey-like package manager and toolkit for Linux Mint."
+echo "  Install software, manage your system, and access tools from the CLI."
+echo ""
+
+echo -e "${YELLOW}COMMANDS${NC}"
+echo ""
+printf "  ${GREEN}%-20s${NC} %s\n" "lget install <pkg>" "Install a package"
+printf "  ${GREEN}%-20s${NC} %s\n" "lget remove <pkg>" "Remove a package"
+printf "  ${GREEN}%-20s${NC} %s\n" "lget search <query>" "Search available packages"
+printf "  ${GREEN}%-20s${NC} %s\n" "lget search --all" "Show every available package"
+printf "  ${GREEN}%-20s${NC} %s\n" "lget list" "List installed packages"
+printf "  ${GREEN}%-20s${NC} %s\n" "lget info <pkg>" "Show package details"
+printf "  ${GREEN}%-20s${NC} %s\n" "lget update" "Full system update"
+echo ""
+
+printf "  ${GREEN}%-20s${NC} %s\n" "ltool" "Interactive toolkit menu"
+printf "  ${GREEN}%-20s${NC} %s\n" "ltool update" "System update & cleanup"
+printf "  ${GREEN}%-20s${NC} %s\n" "ltool info" "System information"
+printf "  ${GREEN}%-20s${NC} %s\n" "ltool dev" "Install dev stack"
+printf "  ${GREEN}%-20s${NC} %s\n" "ltool media" "Install media tools"
+printf "  ${GREEN}%-20s${NC} %s\n" "ltool gaming" "Install gaming tools"
+echo ""
+
+printf "  ${GREEN}%-20s${NC} %s\n" "lhelp" "Show this help overview"
+echo ""
+
+echo -e "${YELLOW}EXAMPLES${NC}"
+echo ""
+echo -e "  ${GREEN}lget install firefox vlc code${NC}"
+echo "    Install Firefox, VLC, and VS Code in one command."
+echo ""
+echo -e "  ${GREEN}lget search browser${NC}"
+echo "    Search for all browser-related packages."
+echo ""
+echo -e "  ${GREEN}lget info git${NC}"
+echo "    Show details about the Git package."
+echo ""
+echo -e "  ${GREEN}lget update${NC}"
+echo "    Update all system packages."
+echo ""
+echo -e "  ${GREEN}ltool${NC}"
+echo "    Open the interactive toolkit menu."
+echo ""
+
+echo -e "${YELLOW}NOTES${NC}"
+echo "  - Every command supports -h or --help for detailed usage"
+echo "  - You can install multiple packages at once: lget install pkg1 pkg2 pkg3"
+echo "  - Works on Linux Mint, Ubuntu, and Debian-based distributions"
+echo ""
+
+echo -e "${CYAN}=========================================================${NC}"
+echo -e "${GREEN}      Run 'lget search --all' to see all 70+ packages      ${NC}"
+echo -e "${CYAN}=========================================================${NC}"

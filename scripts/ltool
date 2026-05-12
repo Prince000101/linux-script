@@ -2,8 +2,14 @@
 
 CYAN='\033[1;36m'; GREEN='\033[1;32m'; YELLOW='\033[1;33m'; RED='\033[1;31m'; NC='\033[0m'
 
-USE_WHIPTAIL=false
-command -v whiptail &>/dev/null && [ "$(tput lines 2>/dev/null || echo 24)" -ge 12 ] && [ "$(tput cols 2>/dev/null || echo 80)" -ge 50 ] && USE_WHIPTAIL=true
+can_use_whiptail() {
+  command -v whiptail &>/dev/null || return 1
+  local lines cols
+  lines=$(tput lines 2>/dev/null) || return 1
+  cols=$(tput cols 2>/dev/null) || return 1
+  [ "$lines" -ge 14 ] && [ "$cols" -ge 50 ] && return 0
+  return 1
+}
 
 # ─── WHIPTAIL WRAPPER ────────────────────────────────────────────────────────
 
@@ -67,7 +73,7 @@ system_info() {
   OUT+="Gateway:       $(ip route | grep default | awk '{print $3}' || echo 'N/A')\n"
   OUT+="DNS:           $(grep -oP '(?<=nameserver\s)\S+' /etc/resolv.conf 2>/dev/null | head -3 | tr '\n' ' ' || echo 'N/A')\n"
 
-  if $USE_WHIPTAIL; then
+  if can_use_whiptail; then
     whiptail --title "System Information" --msgbox "$OUT" 22 72
   else
     clear
@@ -190,7 +196,7 @@ whiptail_menu() {
       "HELP"     "Show help & usage")
 
     local exit_code=$?
-    [ "$exit_code" != 0 ] && clear && exit 0
+    [ "$exit_code" != 0 ] && return 1
 
     case "$choice" in
       UPDATE) system_update; read -p "Press Enter..." ;;
@@ -252,8 +258,8 @@ case "${1:-}" in
   clean|cleanup)    deep_cleanup ;;
   help|-h|--help)   show_help_text ;;
   ""|menu|interactive)
-    if $USE_WHIPTAIL; then
-      whiptail_menu
+    if can_use_whiptail; then
+      whiptail_menu || text_menu
     else
       text_menu
     fi

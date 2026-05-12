@@ -224,8 +224,14 @@ is_installed() {
 # WHIPTAIL DETECTION
 # ═══════════════════════════════════════════════════════════════════════════════
 
-USE_WHIPTAIL=false
-command -v whiptail &>/dev/null && [ "$(tput lines 2>/dev/null || echo 24)" -ge 12 ] && [ "$(tput cols 2>/dev/null || echo 80)" -ge 50 ] && USE_WHIPTAIL=true
+can_use_whiptail() {
+  command -v whiptail &>/dev/null || return 1
+  local lines cols
+  lines=$(tput lines 2>/dev/null) || return 1
+  cols=$(tput cols 2>/dev/null) || return 1
+  [ "$lines" -ge 14 ] && [ "$cols" -ge 50 ] && return 0
+  return 1
+}
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # INSTALL / REMOVE ENGINE
@@ -501,7 +507,7 @@ whiptail_main_menu() {
       20 58 14 "${args[@]}")
 
     local exit_code=$?
-    [ "$exit_code" != 0 ] && clear && exit 0
+    [ "$exit_code" != 0 ] && return 1
 
     case "$choice" in
       SEARCH)    whiptail_search ;;
@@ -923,7 +929,7 @@ case "${1:-}" in
   update|up|upgrade) system_update ;;
   help|-h|--help) show_help_text ;;
   *)
-    if $USE_WHIPTAIL; then
+    if can_use_whiptail; then
       whiptail_main_menu || show_main_menu_text
     else
       show_main_menu_text

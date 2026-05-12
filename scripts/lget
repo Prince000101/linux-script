@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+trap 'echo ""; echo "Cancelled."; exit 0' INT TERM
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATA_DIRS=("$SCRIPT_DIR" "/usr/local/share/linux-script" "/usr/local/bin")
 
@@ -224,6 +226,7 @@ cmd_update() {
 # ─── WHIPTAIL INTERACTIVE ──────────────────────────────────────────────
 
 can_whiptail() {
+  [[ -t 0 ]] || return 1
   command -v whiptail &>/dev/null || return 1
   tput lines &>/dev/null || return 1
   tput cols &>/dev/null || return 1
@@ -354,7 +357,7 @@ get_cat_count() {
 text_menu() {
   local cats=(); mapfile -t cats < <(get_categories)
   while true; do
-    clear
+    printf "\033[2J\033[H"
     echo -e "${GREEN}┌─────────────────────────────────────────────────────┐${NC}"
     echo -e "${GREEN}│              LGET - Package Browser                 │${NC}"
     echo -e "${GREEN}└─────────────────────────────────────────────────────┘${NC}"
@@ -366,7 +369,7 @@ text_menu() {
     echo -e "  [${GREEN}s${NC}] Search  [${GREEN}i${NC}] Installed  [${GREEN}u${NC}] Update  [${GREEN}q${NC}] Quit"
     read -p "  Choice: " ch
     case "$ch" in
-      q|Q) clear; exit 0 ;;
+      q|Q) printf "\033[2J\033[H"; exit 0 ;;
       u|U) cmd_update; read -p "Press Enter..." ;;
       i|I) cmd_list; read -p "Press Enter..." ;;
       s|S) read -p "  Search: " q; [ -n "$q" ] && cmd_search "$q"; read -p "Press Enter..." ;;
@@ -381,7 +384,7 @@ text_menu() {
 text_browse() {
   local cat="$1"; local entries=(); mapfile -t entries < <(get_pkgs_by_cat "$cat")
   while true; do
-    clear
+    printf "\033[2J\033[H"
     echo -e "${YELLOW}${cat}${NC} ${CYAN}[${#entries[@]} packages]${NC}\n"
     for i in $(seq 0 $((${#entries[@]} - 1))); do
       IFS='|' read -r n d _ _ <<< "${entries[$i]}"
@@ -391,7 +394,8 @@ text_browse() {
     echo -e "\n  ${YELLOW}Numbers to install (e.g. 1 3 5-8)${NC}"
     echo -e "  ${GREEN}[b]${NC} Back  ${GREEN}[q]${NC} Quit"
     read -p "  Choice: " input
-    [ "$input" = "q" ] && clear && exit 0; [ "$input" = "b" ] && return
+    [[ "$input" == "q" ]] && { printf "\033[2J\033[H"; exit 0; }
+    [[ "$input" == "b" ]] && return
     local sel=()
     for part in $input; do
       if echo "$part" | grep -qE '^[0-9]+-[0-9]+$'; then
@@ -414,7 +418,8 @@ show_help() {
   echo -e "${GREEN}lget${NC} - Linux Package Manager"
   echo ""
   echo "Usage:"
-  echo "  lget                          Interactive browser (whiptail ✓)"
+  echo "  lget                          Show help (this screen)"
+  echo "  lget menu                     Interactive package browser"
   echo "  lget install [-y] <pkg>...    Install packages"
   echo "  lget remove  <pkg>...         Remove packages"
   echo "  lget search  <query>          Search packages"
@@ -438,11 +443,23 @@ case "${1:-}" in
   update|up)      cmd_update ;;
   upgrade)        cmd_upgrade ;;
   help|-h|--help) show_help ;;
-  "")
+  "menu")
     if can_whiptail; then
-      whiptail_category_menu || true
+      whiptail_category_menu
     else
       text_menu
+    fi
+    ;;
+  "")
+    if [[ -t 0 ]]; then
+      if can_whiptail; then
+        whiptail_category_menu
+      else
+        text_menu
+      fi
+    else
+      echo -e "${GREEN}lget${NC} - ${#PKGS[@]} packages available."
+      echo "Run 'lget menu' for interactive browser, or 'lget help' for usage."
     fi
     ;;
   *)

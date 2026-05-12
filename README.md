@@ -30,6 +30,12 @@ cd linux-script
 bash upgrade.sh
 ```
 
+The upgrade script will:
+1. Pull the latest code from GitHub
+2. Install system dependencies (curl, wget, gpg, whiptail)
+3. Update scripts and package database
+4. Add bash aliases and completions
+
 ---
 
 ## `lget` — Package Manager

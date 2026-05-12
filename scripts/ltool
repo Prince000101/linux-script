@@ -101,6 +101,7 @@ show_help() {
   echo "  ltool gaming     Install gaming tools"
   echo "  ltool help       Show this help"
   echo ""
+  echo "  lget (no args)   Interactive package browser"
   echo "Quick stacks call lget internally."
 }
 

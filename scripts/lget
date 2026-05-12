@@ -251,10 +251,143 @@ cmd_upgrade() {
   cmd_update
 }
 
+get_categories() {
+  local cats=()
+  for entry in "${PKGS[@]}"; do
+    IFS='|' read -r _ _ cat _ <<< "$entry"
+    local found=false
+    for c in "${cats[@]}"; do [[ "$c" == "$cat" ]] && found=true && break; done
+    $found || cats+=("$cat")
+  done
+  printf '%s\n' "${cats[@]}"
+}
+
+get_pkgs_by_cat() {
+  local cat="$1"
+  for entry in "${PKGS[@]}"; do
+    IFS='|' read -r name desc cat2 _ <<< "$entry"
+    [[ "$cat2" == "$cat" ]] && echo "$entry"
+  done
+}
+
+get_cat_count() {
+  local cat="$1" c=0
+  for entry in "${PKGS[@]}"; do
+    IFS='|' read -r _ _ c2 _ <<< "$entry"
+    [[ "$c2" == "$cat" ]] && c=$((c + 1))
+  done
+  echo "$c"
+}
+
+interactive_menu() {
+  local categories=()
+  mapfile -t categories < <(get_categories)
+  local cat_count=${#categories[@]}
+
+  while true; do
+    clear
+    echo -e "${GREEN}┌─────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${GREEN}│                LGET - Package Browser                    │${NC}"
+    echo -e "${GREEN}│          Browse, select, and install packages           │${NC}"
+    echo -e "${GREEN}└─────────────────────────────────────────────────────────┘${NC}"
+    echo ""
+    echo -e "  ${YELLOW}Categories:${NC}"
+    echo ""
+
+    for i in $(seq 0 $((cat_count - 1))); do
+      local c="${categories[$i]}"
+      local cnt=$(get_cat_count "$c")
+      printf "  [${GREEN}%d${NC}]  ${CYAN}%-22s${NC} ${YELLOW}(%d packages)${NC}\n" $((i+1)) "$c" "$cnt"
+    done
+
+    echo ""
+    echo -e "  [${GREEN}s${NC}]  Search packages"
+    echo -e "  [${GREEN}i${NC}]  Show installed packages"
+    echo -e "  [${GREEN}u${NC}]  System update"
+    echo -e "  [${GREEN}h${NC}]  Help"
+    echo -e "  [${GREEN}q${NC}]  Quit"
+    echo ""
+    read -p "  Choice: " choice
+
+    case "$choice" in
+      q|Q) clear; exit 0 ;;
+      h|H) show_help; read -p "Press Enter...";;
+      u|U) cmd_update; read -p "Press Enter...";;
+      i|I) cmd_list; read -p "Press Enter...";;
+      s|S) read -p "  Search: " q; [ -n "$q" ] && cmd_search "$q"; read -p "Press Enter...";;
+      *)
+        if [ "$choice" -ge 1 ] 2>/dev/null && [ "$choice" -le "$cat_count" ] 2>/dev/null; then
+          browse_category "${categories[$((choice-1))]}"
+        fi
+        ;;
+    esac
+  done
+}
+
+browse_category() {
+  local cat="$1"
+  local entries=()
+  mapfile -t entries < <(get_pkgs_by_cat "$cat")
+  local total=${#entries[@]}
+
+  while true; do
+    clear
+    echo -e "${YELLOW}  Category:${NC} $cat  ${CYAN}[$total packages]${NC}"
+    echo ""
+
+    for i in $(seq 0 $((total - 1))); do
+      IFS='|' read -r name desc _ _ <<< "${entries[$i]}"
+      local mark=" "
+      is_installed "$name" && mark="${GREEN}✓${NC}"
+      printf "  %s [%2d] ${CYAN}%-16s${NC} %s\n" "$mark" $((i+1)) "$name" "$desc"
+    done
+
+    echo ""
+    echo -e "  ${YELLOW}Enter numbers to install (e.g. 1 3 5-8)${NC}"
+    echo -e "  ${GREEN}[b]${NC} Back  ${GREEN}[q]${NC} Quit"
+    echo ""
+    read -p "  Choice: " input
+
+    [ "$input" = "q" ] && clear && exit 0
+    [ "$input" = "b" ] && return
+
+    local selected=()
+    for part in $input; do
+      if echo "$part" | grep -qE '^[0-9]+-[0-9]+$'; then
+        local start="${part%-*}" end="${part#*-}"
+        for n in $(seq "$start" "$end"); do
+          [ "$n" -ge 1 ] && [ "$n" -le "$total" ] && selected+=("$n")
+        done
+      elif [ "$part" -ge 1 ] 2>/dev/null && [ "$part" -le "$total" ] 2>/dev/null; then
+        selected+=("$part")
+      fi
+    done
+
+    if [ ${#selected[@]} -gt 0 ]; then
+      echo ""
+      echo -e "${YELLOW}  Selected:${NC}"
+      local install_names=()
+      for n in "${selected[@]}"; do
+        IFS='|' read -r name desc _ _ <<< "${entries[$((n-1))]}"
+        echo -e "    ${GREEN}•${NC} $name — $desc"
+        install_names+=("$name")
+      done
+      echo ""
+      read -p "  Install? [Y/n]: " confirm
+      [[ "$confirm" =~ ^[nN] ]] && continue
+      for name in "${install_names[@]}"; do
+        entry=$(find_pkg "$name") && install_one "$entry"
+      done
+      read -p "  Press Enter..."
+    fi
+  done
+}
+
 show_help() {
   echo -e "${GREEN}lget${NC} - Linux Package Manager"
   echo ""
   echo "Usage:"
+  echo "  lget                          Interactive package browser"
   echo "  lget install <pkg> [pkg...]   Install packages"
   echo "  lget remove  <pkg> [pkg...]   Remove packages"
   echo "  lget search  <query>          Search packages"
@@ -284,7 +417,8 @@ case "${1:-}" in
   info|show)      shift; cmd_info "${1:-}" ;;
   update|up)      cmd_update ;;
   upgrade)        cmd_upgrade ;;
-  help|-h|--help|"") show_help ;;
+  help|-h|--help) show_help ;;
+  "")             interactive_menu ;;
   *)
     echo -e "${RED}Unknown command:${NC} $1"
     show_help

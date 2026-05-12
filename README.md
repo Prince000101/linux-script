@@ -38,6 +38,7 @@ CLI-first, fast, and scriptable. Just type commands:
 
 | Command | What it does |
 |---------|-------------|
+| `lget` | Interactive package browser (browse, select, install) |
 | `lget install firefox vlc code` | Install multiple packages |
 | `lget remove <pkg>` | Remove a package |
 | `lget search <query>` | Search packages |

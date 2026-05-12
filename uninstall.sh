@@ -11,7 +11,7 @@ if [[ "$(uname)" != "Linux" ]]; then
 fi
 
 echo -e "\n${YELLOW}[1/4]${NC} Removing scripts..."
-for script in lget ltool lhelp; do
+for script in lget ltool lhelp lget-tui; do
   if [[ -f "/usr/local/bin/$script" ]]; then
     sudo rm "/usr/local/bin/$script"
     echo -e "${GREEN}  Removed /usr/local/bin/$script${NC}"

@@ -32,7 +32,7 @@ bash upgrade.sh
 
 The upgrade script will:
 1. Pull the latest code from GitHub
-2. Install system dependencies (curl, wget, gpg, whiptail)
+2. Install system dependencies (curl, wget, gpg) and compile the TUI package browser
 3. Update scripts and package database
 4. Add bash aliases and completions
 
@@ -44,7 +44,7 @@ CLI-first, fast, and scriptable. Just type commands:
 
 | Command | What it does |
 |---------|-------------|
-| `lget` | Interactive package browser (browse, select, install) |
+| `lget` | Interactive TUI package browser (arrow keys, Space to select, Enter to confirm) |
 | `lget install firefox vlc code` | Install multiple packages |
 | `lget remove <pkg>` | Remove a package |
 | `lget search <query>` | Search packages |

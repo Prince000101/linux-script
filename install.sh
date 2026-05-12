@@ -19,6 +19,7 @@ sudo apt install -y curl wget gpg whiptail 2>&1 | tail -1
 
 echo -e "\n${YELLOW}[2/5]${NC} Installing toolkit scripts..."
 SCRIPT_DIR="./scripts"
+TUI_DIR="./tui"
 
 for script in lget ltool lhelp; do
   if [[ -f "$SCRIPT_DIR/$script" ]]; then
@@ -27,6 +28,17 @@ for script in lget ltool lhelp; do
     echo -e "${GREEN}  $script${NC}"
   fi
 done
+
+echo -e "${YELLOW}  Compiling TUI browser...${NC}"
+if command -v go &>/dev/null; then
+  (cd "$TUI_DIR" && go build -o lget-tui . 2>/dev/null) && {
+    sudo cp "$TUI_DIR/lget-tui" /usr/local/bin/lget-tui
+    echo -e "${GREEN}  lget-tui${NC}"
+    rm -f "$TUI_DIR/lget-tui"
+  } || echo -e "${YELLOW}  Go build failed. Install Go for TUI mode.${NC}"
+else
+  echo -e "${YELLOW}  Go not installed. Install Go for TUI mode.${NC}"
+fi
 
 echo -e "${YELLOW}  Installing package database...${NC}"
 if [[ -f "$SCRIPT_DIR/packages.sh" ]]; then

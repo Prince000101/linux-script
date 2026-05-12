@@ -444,19 +444,30 @@ case "${1:-}" in
   upgrade)        cmd_upgrade ;;
   help|-h|--help) show_help ;;
   "menu")
-    if can_whiptail; then
-      whiptail_category_menu
+    TUI_BIN=""
+    for dir in "${DATA_DIRS[@]}" "$SCRIPT_DIR/../tui"; do
+      if [[ -f "$dir/lget-tui" ]]; then
+        TUI_BIN="$dir/lget-tui"
+        break
+      fi
+    done
+    if [[ -n "$TUI_BIN" && -x "$TUI_BIN" ]]; then
+      SELECTED=$("$TUI_BIN" 2>/dev/null) || { echo -e "${RED}Cancelled.${NC}"; exit 0; }
+      if [[ -n "$SELECTED" ]]; then
+        mapfile -t names <<< "$SELECTED"
+        echo -e "${YELLOW}Installing ${#names[@]} package(s)...${NC}"
+        for name in "${names[@]}"; do
+          entry=$(find_pkg "$name") || echo -e "${RED}  Unknown:${NC} $name"
+          [[ -n "$entry" ]] && install_one "$entry"
+        done
+      fi
     else
       text_menu
     fi
     ;;
   "")
     if [[ -t 0 ]]; then
-      if can_whiptail; then
-        whiptail_category_menu
-      else
-        text_menu
-      fi
+      exec bash "$0" menu
     else
       echo -e "${GREEN}lget${NC} - ${#PKGS[@]} packages available."
       echo "Run 'lget menu' for interactive browser, or 'lget help' for usage."

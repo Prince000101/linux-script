@@ -34,6 +34,7 @@ echo -e "${GREEN}  Dependencies OK${NC}"
 
 echo -e "\n${YELLOW}[5/8]${NC} Installing scripts & package database..."
 SCRIPT_DIR="./scripts"
+TUI_DIR="./tui"
 BIN_DIR="/usr/local/bin"
 DATA_DIR="/usr/local/share/linux-script"
 sudo mkdir -p "$DATA_DIR"
@@ -52,6 +53,15 @@ for script in lget ltool lhelp; do
     fi
   fi
 done
+
+echo -e "  Compiling TUI browser..."
+if command -v go &>/dev/null; then
+  (cd "$TUI_DIR" && go build -o lget-tui . 2>/dev/null) && {
+    sudo cp "$TUI_DIR/lget-tui" "$BIN_DIR/lget-tui"
+    echo -e "${GREEN}  lget-tui${NC}"
+    rm -f "$TUI_DIR/lget-tui"
+  } || echo -e "${YELLOW}  Go build skipped${NC}"
+fi
 
 for f in packages.sh packages.db; do
   if [[ -f "$SCRIPT_DIR/$f" ]]; then

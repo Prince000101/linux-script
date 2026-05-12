@@ -1,0 +1,155 @@
+firefox|Firefox web browser|Browsers|apt:firefox
+chrome|Google Chrome web browser|Browsers|script
+chromium|Chromium open-source browser|Browsers|apt:chromium-browser
+brave|Brave browser with ad blocker|Browsers|script
+edge|Microsoft Edge browser|Browsers|apt:microsoft-edge-dev
+opera|Opera browser|Browsers|script
+vivaldi|Vivaldi browser|Browsers|script
+tor-browser|Tor anonymized browser|Browsers|script
+vlc|VLC media player|Media & Graphics|apt:vlc
+mpv|Lightweight video player|Media & Graphics|apt:mpv
+gimp|GNU Image Manipulation Program|Media & Graphics|apt:gimp
+inkscape|Vector graphics editor|Media & Graphics|apt:inkscape
+blender|3D creation suite|Media & Graphics|snap:blender
+obs|OBS Studio screen recorder|Media & Graphics|apt:obs-studio
+kdenlive|Video editor|Media & Graphics|apt:kdenlive
+audacity|Audio editor|Media & Graphics|apt:audacity
+handbrake|Video transcoder|Media & Graphics|apt:handbrake
+shotcut|Cross-platform video editor|Media & Graphics|apt:shotcut
+flameshot|Screenshot & annotation tool|Media & Graphics|apt:flameshot
+krita|Digital painting & illustration|Media & Graphics|apt:krita
+darktable|Photo workflow & raw developer|Media & Graphics|apt:darktable
+pitivi|Video editor (GNOME)|Media & Graphics|apt:pitivi
+rawtherapee|Raw image processor|Media & Graphics|apt:rawtherapee
+peek|Simple GIF/video screen recorder|Media & Graphics|apt:peek
+simplescreenrecorder|Simple screen recorder|Media & Graphics|apt:simplescreenrecorder
+losslesscut|Lossless video trimming|Media & Graphics|snap:lossless-cut
+mkvtoolnix|MKV video toolset|Media & Graphics|apt:mkvtoolnix
+spotify|Spotify music streaming|Media & Graphics|script
+discord|Discord chat app|Communication|script
+telegram|Telegram messaging|Communication|snap:telegram-desktop
+slack|Slack workspace chat|Communication|snap:slack
+zoom|Zoom video conferencing|Communication|script
+whatsapp|WhatsApp desktop client|Communication|snap:whatsapp-for-linux
+signal|Signal private messenger|Communication|script
+element|Element Matrix chat client|Communication|apt:element-desktop
+code|Visual Studio Code editor|Development|script
+vscodium|VS Code without telemetry|Development|apt:vscodium
+sublime|Sublime Text 4 editor|Development|snap:sublime-text
+neovim|Modern Vim editor|Development|apt:neovim
+git|Git version control|Development|apt:git
+nodejs|Node.js JavaScript runtime|Development|script
+python3|Python 3 + pip|Development|apt:python3-pip
+docker|Docker container platform|Development|script
+docker-compose|Docker Compose|Development|apt:docker-compose-plugin
+postman|API testing tool|Development|snap:postman
+mysql-workbench|MySQL database GUI|Development|apt:mysql-workbench
+mysql-server|MySQL database server|Development|apt:mysql-server
+postgresql|PostgreSQL database|Development|apt:postgresql
+sqlite3|SQLite database engine|Development|apt:sqlite3
+redis|Redis cache & store|Development|apt:redis
+php|PHP scripting language|Development|apt:php
+composer|PHP dependency manager|Development|apt:composer
+jdk|Java Development Kit (default)|Development|apt:default-jdk
+rust|Rust programming language|Development|script
+go|Go programming language|Development|apt:golang
+dotnet|.NET SDK 8.0|Development|script
+flutter|Flutter UI framework|Development|snap:flutter
+dart|Dart programming language|Development|apt:dart
+kotlin|Kotlin programming language|Development|snap:kotlin
+yarn|Yarn package manager|Development|apt:yarn
+pnpm|pnpm package manager|Development|npm:pnpm
+gcc|GNU C/C++ compiler|Development|apt:gcc
+make|GNU Make build tool|Development|apt:make
+cmake|Cross-platform build system|Development|apt:cmake
+android-studio|Android Studio IDE|Development|snap:android-studio
+godot|Godot game engine|Development|snap:godot
+vagrant|Vagrant VM manager|Development|apt:vagrant
+ansible|Ansible automation|Development|apt:ansible
+terraform|Terraform infrastructure|Development|script
+kubectl|Kubernetes CLI|Development|snap:kubectl
+jupyter|Jupyter notebook/lab|Development|pip:jupyterlab
+elixir|Elixir programming language|Development|apt:elixir
+htop|Interactive process viewer|Utilities|apt:htop
+btop|Modern resource monitor|Utilities|apt:btop
+neofetch|System info display|Utilities|apt:neofetch
+tmux|Terminal multiplexer|Utilities|apt:tmux
+fish|Friendly interactive shell|Utilities|apt:fish
+zsh|Z shell|Utilities|apt:zsh
+bat|Cat with syntax highlighting|Utilities|apt:bat
+tree|Directory tree viewer|Utilities|apt:tree
+ripgrep|Ultra-fast text search|Utilities|apt:ripgrep
+fd|Simple fast file find|Utilities|apt:fd-find
+procs|Modern ps replacement|Utilities|snap:procs
+duf|Disk usage utility|Utilities|apt:duf
+dust|More intuitive du|Utilities|apt:dust
+delta|Git diff viewer|Utilities|apt:git-delta
+hyperfine|Command benchmarking|Utilities|apt:hyperfine
+tldr|Simplified man pages|Utilities|pip:tldr
+cheat|Cheat sheets for commands|Utilities|snap:cheat
+jq|Command-line JSON processor|Utilities|apt:jq
+yq|Command-line YAML processor|Utilities|snap:yq
+fzf|Fuzzy command-line finder|Utilities|apt:fzf
+ranger|Terminal file manager|Utilities|apt:ranger
+nnn|Tiny terminal file manager|Utilities|apt:nnn
+mc|Midnight Commander file manager|Utilities|apt:mc
+screen|Terminal screen manager|Utilities|apt:screen
+rsync|Fast file syncing tool|Utilities|apt:rsync
+sshfs|SSH filesystem mount|Utilities|apt:sshfs
+curl|URL transfer tool|Utilities|apt:curl
+wget|File downloader|Utilities|apt:wget
+unzip|Zip file extractor|Utilities|apt:unzip
+unrar|RAR file extractor|Utilities|apt:unrar
+p7zip|7-Zip file archiver|Utilities|apt:p7zip-full
+glances|System monitoring dashboard|Utilities|pip:glances
+timeshift|System backup & restore|Utilities|apt:timeshift
+fonts-firacode|Fira Code font with ligatures|Utilities|apt:fonts-firacode
+steam|Steam gaming platform|Gaming|apt:steam
+lutris|Game manager for Linux|Gaming|apt:lutris
+heroic|Heroic Games Launcher (Epic/GOG)|Gaming|script
+wine|Windows compatibility layer|Gaming|apt:wine
+winetricks|Wine setup helper|Gaming|apt:winetricks
+playonlinux|Wine frontend|Gaming|apt:playonlinux
+gamemode|Game optimization daemon|Gaming|apt:gamemode
+mangohud|Game overlay HUD|Gaming|apt:mangohud
+minecraft|Minecraft Java Edition|Gaming|apt:minecraft-launcher
+keepassxc|Password manager|Security|apt:keepassxc
+veracrypt|Disk encryption|Security|apt:veracrypt
+bitwarden|Bitwarden password manager|Security|snap:bitwarden
+nmap|Network scanner|Security|apt:nmap
+wireshark|Network protocol analyzer|Security|apt:wireshark
+openssh|SSH server & client|Security|apt:openssh-server
+gpg|GNU Privacy Guard|Security|apt:gnupg2
+clamav|Antivirus scanner|Security|apt:clamav
+fail2ban|Fail2ban intrusion prevention|Security|apt:fail2ban
+ufw|Uncomplicated Firewall|Security|apt:ufw
+rkhunter|Rootkit hunter scanner|Security|apt:rkhunter
+libreoffice|Full office suite|Productivity|apt:libreoffice
+onlyoffice|Office suite (MS format compatible)|Productivity|apt:onlyoffice-desktopeditors
+obsidian|Knowledge base / notes|Productivity|snap:obsidian
+thunderbird|Email & calendar client|Productivity|apt:thunderbird
+calibre|Ebook library manager|Productivity|apt:calibre
+anki|Spaced repetition flash cards|Productivity|apt:anki
+zotero|Reference manager|Productivity|apt:zotero
+okular|Document viewer (PDF, etc.)|Productivity|apt:okular
+goldendict|Dictionary lookup tool|Productivity|apt:goldendict-ng
+foxitreader|Foxit PDF reader|Productivity|script
+ffmpeg|Audio/video conversion|Tools|apt:ffmpeg
+yt-dlp|YouTube video downloader|Tools|pip:yt-dlp
+aria2|Ultra-fast download utility|Tools|apt:aria2
+virtualbox|Virtual machine manager|Tools|apt:virtualbox
+qemu|QEMU machine emulator|Tools|apt:qemu-system-x86
+minikube|Local Kubernetes cluster|Tools|snap:minikube
+helm|Kubernetes package manager|Tools|snap:helm
+lazygit|Terminal UI for git|Tools|apt:lazygit
+lazydocker|Terminal UI for docker|Tools|script
+httpie|User-friendly HTTP client|Tools|apt:httpie
+wget2|Next-gen download tool|Tools|apt:wget2
+shellcheck|Shell script linter|Tools|apt:shellcheck
+shfmt|Shell formatter|Tools|apt:shfmt
+bpython|Fancy Python REPL|Tools|apt:bpython
+entr|File watcher|Tools|apt:entr
+ctop|Container top-like monitor|Tools|snap:ctop
+asciinema|Terminal recording tool|Tools|apt:asciinema
+aws-cli|AWS command-line tools|Tools|apt:awscli
+gh|GitHub CLI|Tools|snap:gh

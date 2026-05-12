@@ -1,35 +1,46 @@
 #!/bin/bash
 
-CYAN='\033[1;36m'; GREEN='\033[1;32m'; YELLOW='\033[1;33m'; RED='\033[1;31m'; NC='\033[0m'
+GREEN=$'\e[1;32m'; YELLOW=$'\e[1;33m'; RED=$'\e[1;31m'; CYAN=$'\e[1;36m'; NC=$'\e[0m'
 
 echo -e "${CYAN}=========================================================${NC}"
 echo -e "${GREEN}         Linux Script - Complete Installation             ${NC}"
 echo -e "${CYAN}=========================================================${NC}"
 
-if [ "$(uname)" != "Linux" ]; then
-  echo -e "${RED}This installer is for Linux only.${NC}"; exit 1
+if [[ "$(uname)" != "Linux" ]]; then
+  echo -e "${RED}Linux only.${NC}"; exit 1
 fi
 if ! command -v sudo &>/dev/null; then
-  echo -e "${RED}sudo is required. Install it first.${NC}"; exit 1
+  echo -e "${RED}sudo is required.${NC}"; exit 1
 fi
 
-echo -e "\n${YELLOW}[1/4]${NC} Installing system dependencies..."
+echo -e "\n${YELLOW}[1/5]${NC} Installing system dependencies..."
 sudo apt update -qq
 sudo apt install -y curl wget gpg 2>&1 | tail -1
 
-echo -e "\n${YELLOW}[2/4]${NC} Installing toolkit scripts..."
+echo -e "\n${YELLOW}[2/5]${NC} Installing toolkit scripts..."
 SCRIPT_DIR="./scripts"
+DATA_DIR="/usr/local/share/linux-script"
+sudo mkdir -p "$DATA_DIR"
+
 for script in lget ltool lhelp; do
-  if [ -f "$SCRIPT_DIR/$script" ]; then
+  if [[ -f "$SCRIPT_DIR/$script" ]]; then
     sudo cp "$SCRIPT_DIR/$script" "/usr/local/bin/$script"
     sudo chmod +x "/usr/local/bin/$script"
-    echo -e "${GREEN}  $script installed to /usr/local/bin/${NC}"
-  else
-    echo -e "${RED}  $SCRIPT_DIR/$script not found, skipping${NC}"
+    echo -e "${GREEN}  $script${NC}"
   fi
 done
 
-echo -e "\n${YELLOW}[3/4]${NC} Setting up bash aliases..."
+echo -e "${YELLOW}  Installing package database...${NC}"
+if [[ -f "$SCRIPT_DIR/packages.sh" ]]; then
+  sudo cp "$SCRIPT_DIR/packages.sh" "$DATA_DIR/packages.sh"
+  echo -e "${GREEN}  packages.sh${NC}"
+fi
+if [[ -f "packages.db" ]]; then
+  sudo cp "packages.db" "$DATA_DIR/packages.db"
+  echo -e "${GREEN}  packages.db${NC}"
+fi
+
+echo -e "\n${YELLOW}[3/5]${NC} Setting up bash aliases..."
 BASHRC="$HOME/.bashrc"; touch "$BASHRC"
 sed -i '/# Linux Script Aliases/,/^$/d' "$BASHRC"
 sed -i '/alias lin=/d' "$BASHRC"; sed -i '/alias lrm=/d' "$BASHRC"
@@ -45,24 +56,34 @@ alias ll='lget list'
 alias li='lget info'
 alias lup='lget update'
 EOF
-echo -e "${GREEN}  Aliases added to ~/.bashrc${NC}"
+echo -e "${GREEN}  Aliases added${NC}"
 
-echo -e "\n${YELLOW}[4/4]${NC} Installing bash completions..."
-sudo tee /etc/bash_completion.d/lget >/dev/null <<'COMPLETIONS'
+echo -e "\n${YELLOW}[4/5]${NC} Installing bash completions..."
+PKG_NAMES=$(grep -oP '^"[^|]+' scripts/packages.sh | sed 's/"//' | tr '\n' ' ')
+sudo tee /etc/bash_completion.d/lget >/dev/null <<COMPLETIONS
 _lget_completions() {
-  local cur="${COMP_WORDS[COMP_CWORD]}"
-  local prev="${COMP_WORDS[COMP_CWORD-1]}"
-  local commands="install remove search list info update help"
-  case $prev in
+  local cur="\${COMP_WORDS[COMP_CWORD]}"
+  local prev="\${COMP_WORDS[COMP_CWORD-1]}"
+  local commands="install remove search list info update upgrade help"
+  local packages="$PKG_NAMES"
+  case \$prev in
     install|remove|info)
-      COMPREPLY=($(compgen -W "firefox chrome chromium brave edge opera vivaldi tor-browser vlc mpv gimp inkscape blender obs kdenlive audacity handbrake shotcut flameshot krita darktable pitivi rawtherapee peek simplescreenrecorder losslesscut mkvtoolnix spotify discord telegram slack zoom whatsapp signal element code vscodium sublime neovim git nodejs python3 docker docker-compose postman mysql-workbench mysql-server postgresql sqlite3 redis php composer jdk rust go dotnet flutter dart kotlin yarn pnpm gcc make cmake android-studio godot vagrant ansible terraform kubectl aws-cli gh jupyter elixir htop btop neofetch tmux fish zsh bat tree ripgrep fd procs duf dust delta hyperfine tldr cheat jq yq fzf ranger nnn mc screen rsync sshfs curl wget unzip unrar p7zip glances timeshift fonts-firacode steam lutris heroic wine winetricks playonlinux gamemode mangohud minecraft keepassxc veracrypt bitwarden nmap wireshark openssh gpg clamav fail2ban ufw rkhunter libreoffice onlyoffice obsidian thunderbird calibre anki zotero okular goldendict foxitreader ffmpeg yt-dlp aria2 virtualbox qemu" -- "$cur"))
-      ;;
-    *) COMPREPLY=($(compgen -W "$commands" -- "$cur")) ;;
+      COMPREPLY=(\$(compgen -W "\$packages" -- "\$cur")) ;;
+    *) COMPREPLY=(\$(compgen -W "\$commands" -- "\$cur")) ;;
   esac
 }
 complete -F _lget_completions lget
 COMPLETIONS
-echo -e "${GREEN}  Bash completions installed${NC}"
+echo -e "${GREEN}  Completions installed${NC}"
+
+echo -e "\n${YELLOW}[5/5]${NC} Verifying installation..."
+for cmd in lget ltool lhelp; do
+  if command -v "$cmd" &>/dev/null; then
+    echo -e "${GREEN}  ✓ $cmd${NC}"
+  else
+    echo -e "${RED}  ✗ $cmd${NC}"
+  fi
+done
 
 echo ""
 echo -e "${CYAN}=========================================================${NC}"
@@ -70,14 +91,9 @@ echo -e "${GREEN}            Installation Complete!                       ${NC}"
 echo -e "${CYAN}=========================================================${NC}"
 echo ""
 echo -e "${YELLOW}Commands:${NC}"
-echo -e "  ${GREEN}lget${NC}         Interactive package manager (just type lget)"
-echo -e "  ${GREEN}ltool${NC}        System toolkit menu"
-echo -e "  ${GREEN}lhelp${NC}        Show help overview"
+echo -e "  ${GREEN}lget install <pkg>${NC}  Install packages"
+echo -e "  ${GREEN}lget search --all${NC}   Browse all packages"
+echo -e "  ${GREEN}lget list${NC}           Show installed"
+echo -e "  ${GREEN}ltool info${NC}          System info"
 echo ""
-echo -e "${YELLOW}Try it now:${NC}"
-echo -e "  ${GREEN}lget${NC}          -> Browse categories and install packages"
-echo -e "  ${GREEN}lin${NC} firefox   -> Install Firefox via alias"
-echo -e "  ${GREEN}lup${NC}           -> System update"
-echo ""
-echo -e "${YELLOW}Run 'source ~/.bashrc' to activate aliases.${NC}"
-echo -e "${GREEN}Enjoy!${NC}"
+echo -e "Run ${GREEN}source ~/.bashrc${NC} to activate aliases."

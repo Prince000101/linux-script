@@ -1,114 +1,71 @@
 #!/bin/bash
 
-CYAN='\033[1;36m'; GREEN='\033[1;32m'; YELLOW='\033[1;33m'; RED='\033[1;31m'; BLUE='\033[1;34m'; NC='\033[0m'
+GREEN=$'\e[1;32m'; CYAN=$'\e[1;36m'; YELLOW=$'\e[1;33m'; RED=$'\e[1;31m'; NC=$'\e[0m'
 
 show_lget_help() {
-  echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
-  echo -e "${GREEN}║            lget  —  Package Manager                        ║${NC}"
-  echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
+  echo -e "${GREEN}lget${NC} - Linux Package Manager"
   echo ""
-  echo -e "  ${YELLOW}Interactive:${NC}"
-  echo -e "    ${GREEN}lget${NC}              Open whiptail menu (arrow keys + Space)"
+  echo "Usage:"
+  echo "  lget install <pkg> [pkg...]   Install packages"
+  echo "  lget remove  <pkg> [pkg...]   Remove packages"
+  echo "  lget search  <query>          Search packages"
+  echo "  lget search --all             List every package"
+  echo "  lget list                     Show installed packages"
+  echo "  lget info    <pkg>            Package details"
+  echo "  lget update                   System update"
+  echo "  lget upgrade                  Alias for update"
   echo ""
-  echo -e "  ${YELLOW}CLI:${NC}"
-  printf "    ${GREEN}%-26s${NC} %s\n" "lget install <pkg...>" "Install packages"
-  printf "    ${GREEN}%-26s${NC} %s\n" "lget remove <pkg>" "Remove a package"
-  printf "    ${GREEN}%-26s${NC} %s\n" "lget search <query>" "Search packages"
-  printf "    ${GREEN}%-26s${NC} %s\n" "lget search --all" "List every package"
-  printf "    ${GREEN}%-26s${NC} %s\n" "lget list" "Show installed packages"
-  printf "    ${GREEN}%-26s${NC} %s\n" "lget info <pkg>" "Package details"
-  printf "    ${GREEN}%-26s${NC} %s\n" "lget update" "System update"
+  echo "Aliases:"
+  echo "  lin <pkg>   = lget install"
+  echo "  lrm <pkg>   = lget remove"
+  echo "  lse <query> = lget search"
+  echo "  ll          = lget list"
+  echo "  li <pkg>    = lget info"
+  echo "  lup         = lget update"
   echo ""
-  echo -e "  ${YELLOW}Categories:${NC} Browsers, Media & Graphics, Communication,"
-  echo -e "  ${YELLOW}            ${NC} Development, Utilities, Gaming, Security,"
-  echo -e "  ${YELLOW}            ${NC} Productivity, Tools"
-  echo -e "  ${YELLOW}Packages:${NC}   150+"
-  echo ""
-  echo -e "  ${YELLOW}Aliases:${NC}"
-  printf "    ${GREEN}%-10s${NC} = ${CYAN}lget install${NC}\n" "lin <pkg>"
-  printf "    ${GREEN}%-10s${NC} = ${CYAN}lget remove${NC}\n" "lrm <pkg>"
-  printf "    ${GREEN}%-10s${NC} = ${CYAN}lget search${NC}\n" "lse <query>"
-  printf "    ${GREEN}%-10s${NC} = ${CYAN}lget list${NC}\n" "ll"
-  printf "    ${GREEN}%-10s${NC} = ${CYAN}lget info${NC}\n" "li <pkg>"
-  printf "    ${GREEN}%-10s${NC} = ${CYAN}lget update${NC}\n" "lup"
+  echo "Categories: Browsers, Media & Graphics, Communication,"
+  echo "            Development, Utilities, Gaming, Security,"
+  echo "            Productivity, Tools"
+  echo "Packages: 150+"
 }
 
 show_ltool_help() {
-  echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
-  echo -e "${GREEN}║            ltool  —  System Toolkit                        ║${NC}"
-  echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
+  echo -e "${GREEN}ltool${NC} - Linux System Toolkit"
   echo ""
-  echo -e "  ${YELLOW}Interactive:${NC}"
-  echo -e "    ${GREEN}ltool${NC}             Open whiptail menu"
+  echo "Usage:"
+  echo "  ltool update     System update & cleanup"
+  echo "  ltool info       System information"
+  echo "  ltool clean      Deep system cleanup"
+  echo "  ltool dev        Install dev stack"
+  echo "  ltool media      Install media tools"
+  echo "  ltool gaming     Install gaming tools"
   echo ""
-  echo -e "  ${YELLOW}CLI:${NC}"
-  printf "    ${GREEN}%-26s${NC} %s\n" "ltool update" "System update & cleanup"
-  printf "    ${GREEN}%-26s${NC} %s\n" "ltool info" "System information"
-  printf "    ${GREEN}%-26s${NC} %s\n" "ltool dev" "Install dev stack"
-  printf "    ${GREEN}%-26s${NC} %s\n" "ltool media" "Install media tools"
-  printf "    ${GREEN}%-26s${NC} %s\n" "ltool gaming" "Install gaming tools"
-  printf "    ${GREEN}%-26s${NC} %s\n" "ltool clean" "Deep system cleanup"
-  echo ""
-  echo -e "  From ltool's menu you can also launch ${GREEN}lget${NC} directly."
-  echo -e "  Quick stacks call lget to install packages — no duplicated code."
+  echo "Quick stacks call lget internally."
 }
 
 show_examples() {
-  echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
-  echo -e "${GREEN}║                    Examples                                ║${NC}"
-  echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
+  echo -e "${GREEN}Examples${NC}"
   echo ""
-  echo -e "  ${YELLOW}Browse & install packages:${NC}"
-  echo -e "    ${GREEN}lget${NC}        → Pick category, Space to toggle, Enter"
-  echo ""
-  echo -e "  ${YELLOW}Quick CLI install:${NC}"
-  echo -e "    ${GREEN}lget install firefox vlc code${NC}"
-  echo ""
-  echo -e "  ${YELLOW}One-command dev setup:${NC}"
-  echo -e "    ${GREEN}ltool dev${NC}"
-  echo ""
-  echo -e "  ${YELLOW}Check installed packages:${NC}"
-  echo -e "    ${GREEN}lget list${NC}   or   ${GREEN}ll${NC}"
-  echo ""
-  echo -e "  ${YELLOW}System info:${NC}"
-  echo -e "    ${GREEN}ltool info${NC}"
-  echo ""
-  echo -e "  ${YELLOW}See all available packages:${NC}"
-  echo -e "    ${GREEN}lget search --all${NC}"
+  echo "  lget install firefox vlc code     Install multiple packages"
+  echo "  lget search browser               Search packages"
+  echo "  lget list                         Show installed"
+  echo "  lget info git                     Package details"
+  echo "  lget update                       System update"
+  echo "  ltool dev                         One-command dev setup"
+  echo "  ltool info                        System information"
 }
-
-# ─── MAIN ────────────────────────────────────────────────────────────────────
 
 case "${1:-}" in
   lget|package|pkg)
-    clear
-    show_lget_help
-    ;;
+    show_lget_help ;;
   ltool|tool|system)
-    clear
-    show_ltool_help
-    ;;
+    show_ltool_help ;;
   example|examples|ex)
-    clear
-    show_examples
-    ;;
+    show_examples ;;
   all|""|-a|--all)
-    clear
-    show_lget_help
-    echo ""
-    show_ltool_help
-    echo ""
-    show_examples
-    ;;
+    show_lget_help; echo ""; show_ltool_help; echo ""; show_examples ;;
   *)
-    echo -e "${RED}Unknown section: $1${NC}"
-    echo -e "Usage: ${GREEN}lhelp${NC} [lget|ltool|examples|all]"
-    echo ""
-    show_lget_help
-    ;;
+    echo -e "${RED}Unknown:${NC} $1"
+    echo "Usage: lhelp [lget|ltool|examples|all]"
+    echo ""; show_lget_help ;;
 esac
-
-echo ""
-echo -e "${CYAN}────────────────────────────────────────────────────────────────${NC}"
-echo -e "${GREEN}  GitHub: github.com/Prince000101/linux-script${NC}"
-echo -e "${CYAN}────────────────────────────────────────────────────────────────${NC}"

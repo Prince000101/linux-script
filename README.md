@@ -1,7 +1,7 @@
 # Linux Script
 
 A Chocolatey-like package manager and system toolkit for **Linux Mint** (Ubuntu/Debian).  
-Browse 150+ packages by category, install with a number picker — all from the terminal.
+Browse 150+ packages by category, select with arrow keys & Space — all from the terminal.
 
 ---
 
@@ -42,49 +42,83 @@ The upgrade script will:
 
 ## `lget` — Interactive Package Manager
 
-Run `lget` with no arguments to open the **interactive menu**:
+Run `lget` with no arguments to open the **interactive menu** (uses `whiptail` — arrow-key + mouse-click friendly):
 
 ```
-┌─────────────────────────────────────────────────────┐
-│            LGET - Linux Package Manager              │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│  Browse packages by category:                       │
-│                                                     │
-│  [1] Browsers                (8 packages)           │
-│  [2] Media & Graphics       (20 packages)           │
-│  [3] Communication           (7 packages)           │
-│  [4] Development            (35 packages)           │
-│  [5] Utilities              (33 packages)           │
-│  [6] Gaming                  (9 packages)           │
-│  [7] Security               (11 packages)           │
-│  [8] Productivity           (10 packages)           │
-│  [9] Tools                   (6 packages)           │
-│                                                     │
-│  [s] Search all packages                            │
-│  [i] Show installed packages                        │
-│  [u] System update & cleanup                        │
-│  [q] Quit                                           │
-│                                                     │
-│  Choice: _                                          │
-└─────────────────────────────────────────────────────┘
+  ┌───────── LGET — Linux Package Manager ─────────┐
+  │                                                 │
+  │  Browse packages by category:                   │
+  │                                                 │
+  │  Browsers        (8 packages)                   │
+  │  Media & Graphics (20 packages)                 │
+  │  Communication   (7 packages)                   │
+  │  Development    (35 packages)                   │
+  │  Utilities      (33 packages)                   │
+  │  Gaming          (9 packages)                   │
+  │  Security       (11 packages)                   │
+  │  Productivity   (10 packages)                   │
+  │  Tools           (6 packages)                   │
+  │                                                 │
+  │  SEARCH — Search all packages                   │
+  │  INSTALLED — Show installed packages            │
+  │  UPDATE — System update & cleanup               │
+  │  HELP — Help & usage                            │
+  │                                                 │
+  │  ↑↓ navigate · ENTER select                     │
+  └─────────────────────────────────────────────────┘
 ```
 
-Select a category → see all packages → enter numbers to install:
+Select a category → use **↑↓ arrows** + **Space** to toggle packages, **Enter** to confirm:
 
 ```
-  Category: Development                  [35 packages]
-
-  [1] git          Git version control      [2] code         VS Code editor
-  [3] nodejs       Node.js runtime          [4] docker       Docker platform
-  [5] python3      Python 3 + pip           [6] neovim       Modern Vim
-  ...
-
-  Enter numbers to install (e.g. 1 3 5-8)
-  [b] Back    [q] Quit
-
-  Choice: 1 3 4
+  ┌─ LGET — Development (35 packages) ──────────────┐
+  │                                                 │
+  │  Select packages to install:                    │
+  │  (already installed = pre-checked)              │
+  │                                                 │
+  │  ☐ git        Git version control               │
+  │  ☑ code       Visual Studio Code editor         │
+  │  ☐ nodejs     Node.js JavaScript runtime        │
+  │  ☑ docker     Docker container platform         │
+  │  ☐ python3    Python 3 + pip                    │
+  │  ...                                           │
+  │                                                 │
+  │  ↑↓ navigate · Space toggle · ENTER confirm     │
+  └─────────────────────────────────────────────────┘
 ```
+
+Before installing, a confirmation screen shows every selected package with its description:
+
+```
+  ┌─ Confirm Installation ──────────────────────────┐
+  │                                                 │
+  │  You are about to install 3 package(s):         │
+  │                                                 │
+  │  1. git — Git version control                   │
+  │  2. nodejs — Node.js JavaScript runtime         │
+  │  3. docker — Docker container platform          │
+  │                                                 │
+  │  Proceed?              <Yes> <No>               │
+  └─────────────────────────────────────────────────┘
+```
+
+During installation, each step shows detailed progress:
+
+```
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Installing: git
+  Description: Git version control
+  Category: Development
+  Source: apt (git)
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    ↳ apt install -y git
+    Reading package lists... Done
+    Building dependency tree... Done
+    ...
+    ✓ Successfully installed: git
+```
+
+Falls back to a text-based number menu if `whiptail` is not installed.
 
 ### CLI Mode
 

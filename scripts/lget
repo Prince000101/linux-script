@@ -41,26 +41,14 @@ is_installed() {
   esac
 }
 
-install_with_apt() {
-  local pkg=$1
-  sudo apt install -y "$pkg" 2>&1 | tail -3
-  return ${PIPESTATUS[0]}
-}
-
-install_with_snap() {
-  local pkg=$1; shift
-  sudo snap install "$pkg" "$@" 2>&1 | tail -2
-  return ${PIPESTATUS[0]}
-}
+install_with_apt() { sudo apt install -y "$1" 2>&1 | tail -3; return ${PIPESTATUS[0]}; }
+install_with_snap() { local p=$1; shift; sudo snap install "$p" "$@" 2>&1 | tail -2; return ${PIPESTATUS[0]}; }
 
 install_script() {
-  local name=$1
-  case "$name" in
+  case "$1" in
     chrome)
-      echo "  Downloading Google Chrome..."
       wget -q --show-progress -O /tmp/chrome.deb "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
-      sudo dpkg -i /tmp/chrome.deb 2>/dev/null
-      sudo apt install -f -y 2>&1 | tail -5 ;;
+      sudo dpkg -i /tmp/chrome.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -5 ;;
     brave)
       sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg 2>/dev/null
       echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list >/dev/null
@@ -71,8 +59,7 @@ install_script() {
     vivaldi)
       wget -q --show-progress -O /tmp/vivaldi.deb "https://downloads.vivaldi.com/stable/vivaldi-stable_amd64.deb"
       sudo dpkg -i /tmp/vivaldi.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -5 ;;
-    tor-browser)
-      sudo apt install -y torbrowser-launcher 2>&1 | tail -5 ;;
+    tor-browser) sudo apt install -y torbrowser-launcher 2>&1 | tail -5 ;;
     discord)
       wget -q --show-progress -O /tmp/discord.deb "https://discord.com/api/download?platform=linux&format=deb"
       sudo dpkg -i /tmp/discord.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -5 ;;
@@ -111,25 +98,20 @@ install_script() {
     heroic)
       wget -q --show-progress -O /tmp/heroic.deb "https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/latest/download/heroic_2.15.2_amd64.deb"
       sudo dpkg -i /tmp/heroic.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -5 ;;
-    minecraft)
-      sudo apt install -y minecraft-launcher 2>&1 | tail -5 ;;
+    minecraft) sudo apt install -y minecraft-launcher 2>&1 | tail -5 ;;
     foxitreader)
       wget -q --show-progress -O /tmp/foxit.deb "https://cdn01.foxitsoftware.com/pub/foxit/reader/desktop/linux/2.x/2.4/en_us/FoxitReader.2.4.5.0727.x64.deb"
       sudo dpkg -i /tmp/foxit.deb 2>/dev/null; sudo apt install -f -y 2>&1 | tail -5 ;;
     lazydocker)
       curl -fsSL https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash 2>&1 | tail -3 ;;
-    *)
-      echo "  No installer defined for $name"
-      return 1 ;;
+    *) echo "  No installer for $1"; return 1 ;;
   esac
 }
 
 install_one() {
   IFS='|' read -r name desc _ src <<< "$1"
   IFS=':' read -r stype sval <<< "$src"
-
-  printf "${GREEN}  →${NC} %s ${CYAN}(%s)${NC}\n" "$name" "$desc"
-
+  printf "  ${GREEN}→${NC} %s ${CYAN}(%s)${NC}\n" "$name" "$desc"
   local status=0
   case "$stype" in
     apt)         install_with_apt "$sval" ;;
@@ -141,12 +123,8 @@ install_one() {
     *)           echo "  Unknown type: $stype"; return 1 ;;
   esac
   status=$?
-
-  if [ "$status" -eq 0 ]; then
-    echo -e "  ${GREEN}✓${NC} Installed $name"
-  else
-    echo -e "  ${RED}✗${NC} Failed: $name"
-  fi
+  if [ "$status" -eq 0 ]; then echo -e "  ${GREEN}✓${NC} Installed $name"
+  else echo -e "  ${RED}✗${NC} Failed: $name"; fi
   return "$status"
 }
 
@@ -160,13 +138,14 @@ remove_one() {
     pip)   pip uninstall -y "$sval" &>/dev/null ;;
     npm)   npm uninstall -g "$sval" &>/dev/null ;;
     script) echo "manual removal required"; return ;;
-  esac
-  echo "done"
+  esac; echo "done"
 }
 
 cmd_install() {
-  [[ $# -eq 0 ]] && echo "Usage: lget install <pkg> [pkg...]" && exit 1
-  for name in "$@"; do
+  local auto_yes=false; local args=()
+  for a in "$@"; do [[ "$a" == "-y" || "$a" == "--yes" ]] && auto_yes=true && continue; args+=("$a"); done
+  [[ ${#args[@]} -eq 0 ]] && echo "Usage: lget install [-y] <pkg> [pkg...]" && exit 1
+  for name in "${args[@]}"; do
     entry=$(find_pkg "$name") || { echo -e "${RED}  Unknown:${NC} $name"; continue; }
     install_one "$entry"
   done
@@ -189,8 +168,7 @@ cmd_search() {
       [[ "$cat" != "$last" ]] && echo -e "\n${GREEN}${cat}${NC}" && last="$cat"
       printf "  ${CYAN}%-14s${NC} %s\n" "$name" "$desc"
     done
-    echo -e "\n${GREEN}Total:${NC} ${#PKGS[@]} packages"
-    return
+    echo -e "\n${GREEN}Total:${NC} ${#PKGS[@]} packages"; return
   fi
   [[ -z "$query" ]] && echo "Usage: lget search <query>  or  lget search --all" && exit 1
   local matches=0 last=""
@@ -236,20 +214,114 @@ cmd_info() {
 
 cmd_update() {
   echo -e "${YELLOW}System Update${NC}"
-  echo -e "${GREEN}[1/4]${NC} APT update..."
-  sudo apt update -qq
-  echo -e "${GREEN}[2/4]${NC} APT upgrade..."
-  sudo apt upgrade -y 2>&1 | tail -5
-  echo -e "${GREEN}[3/4]${NC} APT autoremove..."
-  sudo apt autoremove -y 2>&1 | tail -3
-  echo -e "${GREEN}[4/4]${NC} Snap refresh..."
-  sudo snap refresh 2>/dev/null || true
+  echo -e "${GREEN}[1/4]${NC} APT update..."; sudo apt update -qq
+  echo -e "${GREEN}[2/4]${NC} APT upgrade..."; sudo apt upgrade -y 2>&1 | tail -5
+  echo -e "${GREEN}[3/4]${NC} APT autoremove..."; sudo apt autoremove -y 2>&1 | tail -3
+  echo -e "${GREEN}[4/4]${NC} Snap refresh..."; sudo snap refresh 2>/dev/null || true
   echo -e "${GREEN}System updated.${NC}"
 }
 
-cmd_upgrade() {
-  cmd_update
+# ─── WHIPTAIL INTERACTIVE ──────────────────────────────────────────────
+
+can_whiptail() {
+  command -v whiptail &>/dev/null || return 1
+  tput lines &>/dev/null || return 1
+  tput cols &>/dev/null || return 1
+  [ "$(tput lines)" -ge 14 ] && [ "$(tput cols)" -ge 50 ]
 }
+
+wrun() {
+  local tmp; tmp=$(mktemp /tmp/lget_w.XXXXXX 2>/dev/null) || return 1
+  whiptail "$@" >"$tmp"; local ret=$?; local val
+  val=$(<"$tmp" 2>/dev/null); rm -f "$tmp"; printf '%s' "$val"; return "$ret"
+}
+
+whiptail_install_pkgs() {
+  local names=("$@")
+  local summary=""
+  for n in "${names[@]}"; do
+    local e=$(find_pkg "$n")
+    IFS='|' read -r _ d _ _ <<< "$e"
+    summary+="$n - $d\n"
+  done
+  whiptail --title "Confirm Installation" --yesno "Install ${#names[@]} package(s)?\n\n$summary\nProceed?" 16 60 || return 1
+  clear
+  for n in "${names[@]}"; do
+    local e=$(find_pkg "$n") && install_one "$e"
+  done
+  echo -e "\n${GREEN}Done.${NC}"
+  read -p "Press Enter..."
+}
+
+whiptail_category_menu() {
+  local cats=(); mapfile -t cats < <(get_categories)
+  while true; do
+    local args=()
+    for c in "${cats[@]}"; do args+=("$c" "$(get_cat_count "$c") packages"); done
+    args+=("SEARCH" "Search all packages" "INSTALLED" "Show installed" "UPDATE" "System update" "HELP" "Help")
+    local ch
+    ch=$(wrun --title "LGET - Package Browser" --menu "↑↓ navigate  ENTER select  ESC exit" 20 58 14 "${args[@]}") || return
+    case "$ch" in
+      SEARCH) whiptail_search ;;
+      INSTALLED) whiptail_installed ;;
+      UPDATE) whiptail_update ;;
+      HELP) whiptail --title "LGET - Help" --msgbox "LGET - Linux Package Manager\n\nBrowse categories → Space to toggle packages → Enter to confirm\n\nCLI:\nlget install <pkg>\nlget remove <pkg>\nlget search <query>\nlget list\nlget info <pkg>\nlget update" 18 60 ;;
+      *) [ -n "$ch" ] && whiptail_checklist "$ch" ;;
+    esac
+  done
+}
+
+whiptail_checklist() {
+  local cat="$1"; local entries=()
+  mapfile -t entries < <(get_pkgs_by_cat "$cat")
+  local args=()
+  local h=$((${#entries[@]} + 8)); [ "$h" -gt 20 ] && h=20; [ "$h" -lt 10 ] && h=10
+  for e in "${entries[@]}"; do
+    IFS='|' read -r n d _ _ <<< "$e"
+    local ch="OFF"; is_installed "$n" && ch="ON"
+    args+=("$n" "$d" "$ch")
+  done
+  local result
+  result=$(wrun --title "LGET - $cat (SPACE=toggle, ENTER=install)" --checklist "↑↓ arrows  SPACE toggle  ENTER confirm" "$h" 70 "${#entries[@]}" "${args[@]}") || return
+  local sel=(); eval "sel=($result)"; [ ${#sel[@]} -eq 0 ] && return
+  whiptail_install_pkgs "${sel[@]}"
+}
+
+whiptail_search() {
+  local q; q=$(wrun --title "Search" --inputbox "Search term:" 8 60) || return; [ -z "$q" ] && return
+  local matches=(); local descs=()
+  for e in "${PKGS[@]}"; do
+    IFS='|' read -r n d c _ <<< "$e"
+    if echo "$n $d" | grep -qi "$q"; then matches+=("$n"); descs+=("$n - $d [$c]"); fi
+  done
+  [ ${#matches[@]} -eq 0 ] && whiptail --title "No Results" --msgbox "No matches for: $q" 8 50 && return
+  local args=()
+  for i in "${!matches[@]}"; do args+=("${matches[$i]}" "${descs[$i]}" "OFF"); done
+  local result
+  result=$(wrun --title "Results (${#matches[@]})" --checklist "SPACE=toggle  ENTER=install" 18 70 10 "${args[@]}") || return
+  local sel=(); eval "sel=($result)"; [ ${#sel[@]} -eq 0 ] && return
+  whiptail_install_pkgs "${sel[@]}"
+}
+
+whiptail_installed() {
+  local list=""; local c=0
+  for e in "${PKGS[@]}"; do
+    IFS='|' read -r n d _ _ <<< "$e"
+    if is_installed "$n"; then list+="  $n - $d\n"; c=$((c + 1)); fi
+  done
+  [ "$c" -eq 0 ] && list="No packages installed."
+  whiptail --title "Installed" --msgbox "Total: $c\n\n$list" 20 70
+}
+
+whiptail_update() {
+  (echo "XXX"; echo "0"; echo "APT update..."; echo "XXX"; sudo apt update -qq
+   echo "XXX"; echo "40"; echo "Upgrading..."; echo "XXX"; sudo apt upgrade -y 2>&1 | tail -5
+   echo "XXX"; echo "75"; echo "Autoremove..."; echo "XXX"; sudo apt autoremove -y 2>&1 | tail -3
+   echo "XXX"; echo "90"; echo "Snap refresh..."; echo "XXX"; sudo snap refresh 2>/dev/null || true
+   echo "XXX"; echo "100"; echo "Done!"; echo "XXX") | whiptail --title "System Update" --gauge "Starting..." 8 60 0
+}
+
+# ─── TEXT INTERACTIVE (fallback) ───────────────────────────────────────
 
 get_categories() {
   local cats=()
@@ -279,107 +351,62 @@ get_cat_count() {
   echo "$c"
 }
 
-interactive_menu() {
-  local categories=()
-  mapfile -t categories < <(get_categories)
-  local cat_count=${#categories[@]}
-
+text_menu() {
+  local cats=(); mapfile -t cats < <(get_categories)
   while true; do
     clear
-    echo -e "${GREEN}┌─────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${GREEN}│                LGET - Package Browser                    │${NC}"
-    echo -e "${GREEN}│          Browse, select, and install packages           │${NC}"
-    echo -e "${GREEN}└─────────────────────────────────────────────────────────┘${NC}"
+    echo -e "${GREEN}┌─────────────────────────────────────────────────────┐${NC}"
+    echo -e "${GREEN}│              LGET - Package Browser                 │${NC}"
+    echo -e "${GREEN}└─────────────────────────────────────────────────────┘${NC}"
     echo ""
-    echo -e "  ${YELLOW}Categories:${NC}"
-    echo ""
-
-    for i in $(seq 0 $((cat_count - 1))); do
-      local c="${categories[$i]}"
-      local cnt=$(get_cat_count "$c")
-      printf "  [${GREEN}%d${NC}]  ${CYAN}%-22s${NC} ${YELLOW}(%d packages)${NC}\n" $((i+1)) "$c" "$cnt"
+    for i in $(seq 0 $((${#cats[@]} - 1))); do
+      printf "  [${GREEN}%d${NC}]  ${CYAN}%-22s${NC} ${YELLOW}(%d)${NC}\n" $((i+1)) "${cats[$i]}" "$(get_cat_count "${cats[$i]}")"
     done
-
     echo ""
-    echo -e "  [${GREEN}s${NC}]  Search packages"
-    echo -e "  [${GREEN}i${NC}]  Show installed packages"
-    echo -e "  [${GREEN}u${NC}]  System update"
-    echo -e "  [${GREEN}h${NC}]  Help"
-    echo -e "  [${GREEN}q${NC}]  Quit"
-    echo ""
-    read -p "  Choice: " choice
-
-    case "$choice" in
+    echo -e "  [${GREEN}s${NC}] Search  [${GREEN}i${NC}] Installed  [${GREEN}u${NC}] Update  [${GREEN}q${NC}] Quit"
+    read -p "  Choice: " ch
+    case "$ch" in
       q|Q) clear; exit 0 ;;
-      h|H) show_help; read -p "Press Enter...";;
-      u|U) cmd_update; read -p "Press Enter...";;
-      i|I) cmd_list; read -p "Press Enter...";;
-      s|S) read -p "  Search: " q; [ -n "$q" ] && cmd_search "$q"; read -p "Press Enter...";;
+      u|U) cmd_update; read -p "Press Enter..." ;;
+      i|I) cmd_list; read -p "Press Enter..." ;;
+      s|S) read -p "  Search: " q; [ -n "$q" ] && cmd_search "$q"; read -p "Press Enter..." ;;
       *)
-        if [ "$choice" -ge 1 ] 2>/dev/null && [ "$choice" -le "$cat_count" ] 2>/dev/null; then
-          browse_category "${categories[$((choice-1))]}"
-        fi
-        ;;
+        if [ "$ch" -ge 1 ] 2>/dev/null && [ "$ch" -le "${#cats[@]}" ] 2>/dev/null; then
+          text_browse "${cats[$((ch-1))]}"
+        fi ;;
     esac
   done
 }
 
-browse_category() {
-  local cat="$1"
-  local entries=()
-  mapfile -t entries < <(get_pkgs_by_cat "$cat")
-  local total=${#entries[@]}
-
+text_browse() {
+  local cat="$1"; local entries=(); mapfile -t entries < <(get_pkgs_by_cat "$cat")
   while true; do
     clear
-    echo -e "${YELLOW}  Category:${NC} $cat  ${CYAN}[$total packages]${NC}"
-    echo ""
-
-    for i in $(seq 0 $((total - 1))); do
-      IFS='|' read -r name desc _ _ <<< "${entries[$i]}"
-      local mark=" "
-      is_installed "$name" && mark="${GREEN}✓${NC}"
-      printf "  %s [%2d] ${CYAN}%-16s${NC} %s\n" "$mark" $((i+1)) "$name" "$desc"
+    echo -e "${YELLOW}${cat}${NC} ${CYAN}[${#entries[@]} packages]${NC}\n"
+    for i in $(seq 0 $((${#entries[@]} - 1))); do
+      IFS='|' read -r n d _ _ <<< "${entries[$i]}"
+      local m=" "; is_installed "$n" && m="${GREEN}✓${NC}"
+      printf "  %s [%2d] ${CYAN}%-16s${NC} %s\n" "$m" $((i+1)) "$n" "$d"
     done
-
-    echo ""
-    echo -e "  ${YELLOW}Enter numbers to install (e.g. 1 3 5-8)${NC}"
+    echo -e "\n  ${YELLOW}Numbers to install (e.g. 1 3 5-8)${NC}"
     echo -e "  ${GREEN}[b]${NC} Back  ${GREEN}[q]${NC} Quit"
-    echo ""
     read -p "  Choice: " input
-
-    [ "$input" = "q" ] && clear && exit 0
-    [ "$input" = "b" ] && return
-
-    local selected=()
+    [ "$input" = "q" ] && clear && exit 0; [ "$input" = "b" ] && return
+    local sel=()
     for part in $input; do
       if echo "$part" | grep -qE '^[0-9]+-[0-9]+$'; then
-        local start="${part%-*}" end="${part#*-}"
-        for n in $(seq "$start" "$end"); do
-          [ "$n" -ge 1 ] && [ "$n" -le "$total" ] && selected+=("$n")
-        done
-      elif [ "$part" -ge 1 ] 2>/dev/null && [ "$part" -le "$total" ] 2>/dev/null; then
-        selected+=("$part")
-      fi
+        local s="${part%-*}" e="${part#*-}"
+        for n in $(seq "$s" "$e"); do [ "$n" -ge 1 ] && [ "$n" -le "${#entries[@]}" ] && sel+=("$n"); done
+      elif [ "$part" -ge 1 ] 2>/dev/null && [ "$part" -le "${#entries[@]}" ] 2>/dev/null; then sel+=("$part"); fi
     done
-
-    if [ ${#selected[@]} -gt 0 ]; then
-      echo ""
-      echo -e "${YELLOW}  Selected:${NC}"
-      local install_names=()
-      for n in "${selected[@]}"; do
-        IFS='|' read -r name desc _ _ <<< "${entries[$((n-1))]}"
-        echo -e "    ${GREEN}•${NC} $name — $desc"
-        install_names+=("$name")
-      done
-      echo ""
-      read -p "  Install? [Y/n]: " confirm
-      [[ "$confirm" =~ ^[nN] ]] && continue
-      for name in "${install_names[@]}"; do
-        entry=$(find_pkg "$name") && install_one "$entry"
-      done
-      read -p "  Press Enter..."
-    fi
+    [ ${#sel[@]} -eq 0 ] && continue
+    local names=()
+    for n in "${sel[@]}"; do IFS='|' read -r name _ _ _ <<< "${entries[$((n-1))]}"; names+=("$name"); done
+    echo ""; echo -e "${YELLOW}Install:${NC} ${names[*]}"
+    read -p "  Proceed? [y/N]: " cf
+    [[ "$cf" =~ ^[yY] ]] || continue
+    for name in "${names[@]}"; do entry=$(find_pkg "$name") && install_one "$entry"; done
+    read -p "Press Enter..."
   done
 }
 
@@ -387,25 +414,18 @@ show_help() {
   echo -e "${GREEN}lget${NC} - Linux Package Manager"
   echo ""
   echo "Usage:"
-  echo "  lget                          Interactive package browser"
-  echo "  lget install <pkg> [pkg...]   Install packages"
-  echo "  lget remove  <pkg> [pkg...]   Remove packages"
+  echo "  lget                          Interactive browser (whiptail ✓)"
+  echo "  lget install [-y] <pkg>...    Install packages"
+  echo "  lget remove  <pkg>...         Remove packages"
   echo "  lget search  <query>          Search packages"
-  echo "  lget search --all             List all packages"
+  echo "  lget search --all             List every package"
   echo "  lget list                     Show installed packages"
   echo "  lget info    <pkg>            Package details"
   echo "  lget update                   System update"
   echo "  lget upgrade                  Alias for update"
   echo "  lget help                     Show this help"
   echo ""
-  echo "Aliases:"
-  echo "  lin <pkg>   = lget install"
-  echo "  lrm <pkg>   = lget remove"
-  echo "  lse <query> = lget search"
-  echo "  ll          = lget list"
-  echo "  li <pkg>    = lget info"
-  echo "  lup         = lget update"
-  echo ""
+  echo "Aliases: lin, lrm, lse, ll, li, lup"
   echo -e "${YELLOW}${#PKGS[@]} packages available${NC}"
 }
 
@@ -418,10 +438,15 @@ case "${1:-}" in
   update|up)      cmd_update ;;
   upgrade)        cmd_upgrade ;;
   help|-h|--help) show_help ;;
-  "")             interactive_menu ;;
+  "")
+    if can_whiptail; then
+      whiptail_category_menu || true
+    else
+      text_menu
+    fi
+    ;;
   *)
     echo -e "${RED}Unknown command:${NC} $1"
-    show_help
-    exit 1
+    show_help; exit 1
     ;;
 esac

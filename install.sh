@@ -15,7 +15,7 @@ fi
 
 echo -e "\n${YELLOW}[1/5]${NC} Installing system dependencies..."
 sudo apt update -qq
-sudo apt install -y curl wget gpg 2>&1 | tail -1
+sudo apt install -y curl wget gpg whiptail 2>&1 | tail -1
 
 echo -e "\n${YELLOW}[2/5]${NC} Installing toolkit scripts..."
 SCRIPT_DIR="./scripts"

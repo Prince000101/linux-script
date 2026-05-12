@@ -149,14 +149,30 @@ For power users, `lget` also works as a command-line tool:
 
 ## `ltool` — System Toolkit
 
+`ltool` now uses the same whiptail interface as `lget`. It is **interconnected** — quick stacks call `lget` internally, and you can launch `lget` directly from the `ltool` menu.
+
 | Command | What it does |
 |---------|-------------|
-| `ltool` | Interactive menu |
+| `ltool` | Interactive whiptail menu |
 | `ltool update` | System update & cleanup |
-| `ltool info` | System info (CPU, RAM, disk, uptime) |
-| `ltool dev` | Install dev stack (git, node, docker, vscode) |
-| `ltool media` | Install media tools (ffmpeg, vlc, yt-dlp) |
-| `ltool gaming` | Install gaming tools (steam, lutris) |
+| `ltool info` | System info (CPU, RAM, disk, uptime, network) |
+| `ltool dev` | Install dev stack (calls `lget install`) |
+| `ltool media` | Install media tools (calls `lget install`) |
+| `ltool gaming` | Install gaming tools (calls `lget install`) |
+| `ltool clean` | Deep cleanup (temp, journal, snap, apt cache) |
+
+From the `ltool` menu you can also launch `lget` to browse and install any of the 150+ packages.
+
+---
+
+## `lhelp` — Help Overview
+
+```
+lhelp              Show all help sections
+lhelp lget         Package manager help only
+lhelp ltool        System toolkit help only
+lhelp examples     Usage examples
+```
 
 ---
 

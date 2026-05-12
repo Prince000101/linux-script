@@ -1,188 +1,266 @@
 #!/bin/bash
 
-CYAN='\033[1;36m'
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-RED='\033[1;31m'
-NC='\033[0m'
+CYAN='\033[1;36m'; GREEN='\033[1;32m'; YELLOW='\033[1;33m'; RED='\033[1;31m'; NC='\033[0m'
 
-show_help() {
-  echo -e "${CYAN}ltool${NC} - Linux Toolkit"
-  echo ""
-  echo "Usage:"
-  echo "  ltool                   Interactive menu"
-  echo "  ltool update            Run system update & cleanup"
-  echo "  ltool info              Show system information"
-  echo "  ltool dev               Install development stack"
-  echo "  ltool media             Install media tools"
-  echo "  ltool gaming            Install gaming tools"
-  echo "  ltool -h|--help         Show this help"
-  exit 0
+USE_WHIPTAIL=false
+command -v whiptail &>/dev/null && [ "$(tput lines 2>/dev/null || echo 24)" -ge 12 ] && [ "$(tput cols 2>/dev/null || echo 80)" -ge 50 ] && USE_WHIPTAIL=true
+
+# ─── WHIPTAIL WRAPPER ────────────────────────────────────────────────────────
+
+wrun() {
+  local tmpfile
+  tmpfile=$(mktemp /tmp/ltool_whiptail.XXXXXX 2>/dev/null) || return 1
+  whiptail "$@" >"$tmpfile"
+  local ret=$?
+  local val
+  val=$(<"$tmpfile" 2>/dev/null)
+  rm -f "$tmpfile"
+  printf '%s' "$val"
+  return "$ret"
 }
 
-[ "$1" = "-h" ] || [ "$1" = "--help" ] && show_help
+# ─── SYSTEM UPDATE ───────────────────────────────────────────────────────────
 
 system_update() {
+  clear
   echo -e "${YELLOW}System Update & Cleanup${NC}"
   echo ""
-  sudo apt update
-  sudo apt upgrade -y
-  sudo apt autoremove -y
-  sudo apt autoclean
-  sudo snap refresh 2>/dev/null
+  echo -e "${GREEN}[1/5]${NC} Updating APT package lists..."
+  sudo apt update -qq
+  echo -e "${GREEN}[2/5]${NC} Upgrading packages..."
+  sudo apt upgrade -y 2>&1 | tail -10
+  echo -e "${GREEN}[3/5]${NC} Removing unused packages..."
+  sudo apt autoremove -y 2>&1 | tail -5
+  echo -e "${GREEN}[4/5]${NC} Cleaning APT cache..."
+  sudo apt autoclean 2>&1 | tail -3
+  echo -e "${GREEN}[5/5]${NC} Updating Snap packages..."
+  sudo snap refresh 2>/dev/null || echo "  Snap not installed."
   echo ""
   echo -e "${GREEN}System is up to date.${NC}"
-  read -p "Press Enter..."
 }
+
+# ─── SYSTEM INFORMATION ──────────────────────────────────────────────────────
 
 system_info() {
-  echo -e "${CYAN}System Information${NC}"
-  echo ""
-  echo -e "${GREEN}Hostname:${NC}    $(hostname)"
-  echo -e "${GREEN}Kernel:${NC}      $(uname -r)"
-  echo -e "${GREEN}OS:${NC}          $(lsb_release -ds 2>/dev/null || cat /etc/os-release 2>/dev/null | grep PRETTY_NAME | cut -d= -f2 | tr -d '\"')"
-  echo -e "${GREEN}CPU:${NC}         $(lscpu | grep 'Model name' | head -1 | cut -d: -f2 | xargs)"
-  echo -e "${GREEN}Memory:${NC}      $(free -h | awk '/^Mem:/ {print $3 "/" $2}')"
-  echo -e "${GREEN}Disk:${NC}        $(df -h / | awk 'NR==2 {print $3 "/" $2 " (" $5 ")"}')"
-  echo -e "${GREEN}Uptime:${NC}      $(uptime -p | sed 's/up //')"
-  echo ""
-  read -p "Press Enter..."
+  local OUT
+  OUT=""
+  OUT+="Hostname:     $(hostname)\n"
+  OUT+="Kernel:       $(uname -r)\n"
+  OUT+="OS:           $(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '\"')\n"
+  OUT+="Uptime:       $(uptime -p | sed 's/up //')\n"
+  OUT+="Shell:        $(basename "$SHELL")\n"
+  OUT+="Packages:     $(dpkg -l 2>/dev/null | grep -c '^ii') apt / $(snap list 2>/dev/null | wc -l) snap\n"
+  OUT+="\n"
+  OUT+="-- CPU --\n"
+  OUT+="Model:        $(lscpu | grep 'Model name' | head -1 | cut -d: -f2 | xargs)\n"
+  OUT+="Cores:         $(nproc) ($(lscpu | grep 'Core(s) per socket' | head -1 | awk '{print $4}') cores / $(lscpu | grep 'Socket(s)' | head -1 | awk '{print $2}') sockets)\n"
+  OUT+="\n"
+  OUT+="-- Memory --\n"
+  OUT+="RAM:           $(free -h | awk '/^Mem:/ {print $3 " / " $2 "  (" $3/$2*100 "% used)"}')\n"
+  OUT+="Swap:          $(free -h | awk '/^Swap:/ {print $3 " / " $2}')\n"
+  OUT+="\n"
+  OUT+="-- Disk --\n"
+  OUT+="Root:          $(df -h / | awk 'NR==2 {print $3 " / " $2 "  (" $5 " used)"}')\n"
+  OUT+="\n"
+  OUT+="-- Network --\n"
+  OUT+="IP:            $(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -1 || echo 'N/A')\n"
+  OUT+="Gateway:       $(ip route | grep default | awk '{print $3}' || echo 'N/A')\n"
+  OUT+="DNS:           $(grep -oP '(?<=nameserver\s)\S+' /etc/resolv.conf 2>/dev/null | head -3 | tr '\n' ' ' || echo 'N/A')\n"
+
+  if $USE_WHIPTAIL; then
+    whiptail --title "System Information" --msgbox "$OUT" 22 72
+  else
+    clear
+    echo -e "${CYAN}System Information${NC}"
+    echo ""
+    echo -e "$OUT" | while IFS= read -r line; do
+      echo "  $line"
+    done
+    read -p "Press Enter..."
+  fi
 }
 
-install_dev_stack() {
+# ─── DEEP CLEANUP ────────────────────────────────────────────────────────────
+
+deep_cleanup() {
+  clear
+  echo -e "${YELLOW}System Deep Cleanup${NC}"
+  echo ""
+  echo -e "${GREEN}[1/6]${NC} APT cache..."
+  sudo apt clean 2>&1 | tail -3
+  echo -e "${GREEN}[2/6]${NC} Journal logs (older than 7 days)..."
+  sudo journalctl --vacuum-time=7d 2>&1 | tail -3
+  echo -e "${GREEN}[3/6]${NC} Temporary files (/tmp)..."
+  sudo rm -rf /tmp/* 2>/dev/null
+  echo -e "${GREEN}[4/6]${NC} Thumbnail cache..."
+  rm -rf "$HOME/.cache/thumbnails/"* 2>/dev/null
+  echo -e "${GREEN}[5/6]${NC} Snap revisions (old disabled snaps)..."
+  snap list --all 2>/dev/null | awk '/disabled/{print $1, $3}' | while read name rev; do
+    sudo snap remove "$name" --revision="$rev" 2>/dev/null
+  done
+  echo -e "${GREEN}[6/6]${NC} Package cache (downloaded .deb)..."
+  sudo apt clean 2>&1 | tail -1
+  echo ""
+  echo -e "${GREEN}Cleanup complete.${NC}"
+}
+
+# ─── QUICK STACKS ────────────────────────────────────────────────────────────
+
+quick_dev() {
+  local pkgs="git build-essential python3 python3-pip nodejs docker code gh make gcc"
   echo -e "${YELLOW}Installing Development Stack${NC}"
   echo ""
-  echo -e "${GREEN}[1/6]${NC} Git..."
-  sudo apt install -y git 2>&1 | tail -1
-  echo -e "${GREEN}[2/6]${NC} Build essentials..."
-  sudo apt install -y build-essential 2>&1 | tail -1
-  echo -e "${GREEN}[3/6]${NC} Python 3 + pip..."
-  sudo apt install -y python3 python3-pip 2>&1 | tail -1
-  echo -e "${GREEN}[4/6]${NC} Node.js (LTS)..."
-  if ! command -v node &>/dev/null; then
-    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - 2>&1 | tail -1
-    sudo apt install -y nodejs 2>&1 | tail -1
-  else
-    echo "  Node.js already installed ($(node -v))"
-  fi
-  echo -e "${GREEN}[5/6]${NC} Docker..."
-  if ! command -v docker &>/dev/null; then
-    curl -fsSL https://get.docker.com | sh 2>&1 | tail -1
-    sudo usermod -aG docker "$USER" 2>/dev/null
-  else
-    echo "  Docker already installed"
-  fi
-  echo -e "${GREEN}[6/6]${NC} VS Code..."
-  if ! command -v code &>/dev/null; then
-    wget -q --show-progress -O /tmp/code.deb "https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64"
-    sudo dpkg -i /tmp/code.deb 2>/dev/null
-    sudo apt install -f -y 2>&1 | tail -1
-  else
-    echo "  VS Code already installed"
-  fi
+  local missing=()
+  for p in $pkgs; do
+    echo -e "${GREEN}  →${NC} $p..."
+    lget install "$p" 2>/dev/null
+  done
   echo ""
-  echo -e "${GREEN}Development stack installed!${NC}"
-  echo -e "${YELLOW}Note: Log out and back in for Docker group to take effect.${NC}"
-  read -p "Press Enter..."
+  echo -e "${GREEN}Development stack done.${NC}"
+  echo -e "${YELLOW}Note: Log out & back in for Docker group to apply.${NC}"
 }
 
-install_media_tools() {
+quick_media() {
+  local pkgs="ffmpeg vlc mpv gimp audacity inkscape obs-studio flameshot yt-dlp"
   echo -e "${YELLOW}Installing Media Tools${NC}"
   echo ""
-  sudo apt install -y ffmpeg vlc mpv gimp audacity 2>&1 | tail -1
-  pip install yt-dlp 2>&1 | tail -1
+  for p in $pkgs; do
+    echo -e "${GREEN}  →${NC} $p..."
+    lget install "$p" 2>/dev/null
+  done
   echo ""
-  echo -e "${GREEN}Media tools installed.${NC}"
-  read -p "Press Enter..."
+  echo -e "${GREEN}Media tools done.${NC}"
 }
 
-install_gaming() {
+quick_gaming() {
+  local pkgs="steam lutris wine winetricks gamemode mangohud"
   echo -e "${YELLOW}Installing Gaming Tools${NC}"
   echo ""
-  sudo apt install -y steam lutris 2>&1 | tail -1
-  echo ""
-  echo -e "${GREEN}Gaming tools installed.${NC}"
-  read -p "Press Enter..."
-}
-
-setup_lget_completions() {
-  echo -e "${YELLOW}Setting up lget bash completions...${NC}"
-  local names=()
-  for entry in "${PACKAGES[@]}"; do
-    IFS='|' read -r pkg_name _ <<< "$entry"
-    names+=("$pkg_name")
+  for p in $pkgs; do
+    echo -e "${GREEN}  →${NC} $p..."
+    lget install "$p" 2>/dev/null
   done
-  local completions_dir="/etc/bash_completion.d"
-  if [ -d "$completions_dir" ]; then
-    sudo tee "$completions_dir/lget" >/dev/null <<EOF
-_lget_completions() {
-  local cur=\${COMP_WORDS[COMP_CWORD]}
-  local prev=\${COMP_WORDS[COMP_CWORD-1]}
-  local commands="install remove search list info update help"
-  local packages="${names[*]}"
-  case \$prev in
-    install|remove|info)
-      COMPREPLY=(\$(compgen -W "\$packages" -- \$cur))
-      ;;
-    *)
-      COMPREPLY=(\$(compgen -W "\$commands" -- \$cur))
-      ;;
-  esac
-}
-complete -F _lget_completions lget
-EOF
-    echo -e "${GREEN}  Bash completions installed (restart shell to use).${NC}"
-  fi
+  echo ""
+  echo -e "${GREEN}Gaming tools done.${NC}"
 }
 
-case "$1" in
-  update|upgrade)
-    system_update
-    ;;
-  info|sysinfo)
-    system_info
-    ;;
-  dev|development|devstack)
-    install_dev_stack
-    ;;
-  media)
-    install_media_tools
-    ;;
-  gaming)
-    install_gaming
-    ;;
-  ""|menu)
-    while true; do
-      clear
-      echo -e "${CYAN}========================================${NC}"
-      echo -e "${GREEN}      LTOOL - Linux Toolkit             ${NC}"
-      echo -e "${CYAN}========================================${NC}"
-      echo ""
-      echo " 1) System Update & Cleanup"
-      echo " 2) System Information"
-      echo " 3) Install Development Stack"
-      echo " 4) Install Media Tools"
-      echo " 5) Install Gaming Tools"
-      echo " 6) Exit"
-      echo ""
-      read -p "Choice [1-6]: " CHOICE
+# ─── HELP ────────────────────────────────────────────────────────────────────
 
-      case $CHOICE in
-        1) system_update ;;
-        2) system_info ;;
-        3) install_dev_stack ;;
-        4) install_media_tools ;;
-        5) install_gaming ;;
-        6) exit 0 ;;
-        *) read -p "Invalid. Press Enter..." ;;
-      esac
-    done
-    ;;
-  -h|--help)
-    show_help
+show_help_text() {
+  echo -e "${CYAN}ltool${NC} - Linux System Toolkit"
+  echo ""
+  echo "Usage:"
+  echo "  ltool                   Interactive menu (whiptail)"
+  echo "  ltool update            System update & cleanup"
+  echo "  ltool info              System information"
+  echo "  ltool dev               Install dev stack"
+  echo "  ltool media             Install media tools"
+  echo "  ltool gaming            Install gaming tools"
+  echo "  ltool clean             Deep system cleanup"
+  echo "  ltool help              Show this help"
+  echo ""
+  echo "Interconnected:"
+  echo "  From ltool menu, launch lget to browse & install 150+ packages"
+  echo "  Quick stacks (dev/media/gaming) call lget internally"
+  echo ""
+  echo "See also: lget (package manager), lhelp (overview)"
+}
+
+show_help_whiptail() {
+  whiptail --title "LTOOL - Help" \
+    --msgbox "LTOOL - Linux System Toolkit\n\nInteractive:\n  ltool              Open this menu\n\nCLI:\n  ltool update       System update & cleanup\n  ltool info         System information\n  ltool dev          Install dev stack\n  ltool media        Install media tools\n  ltool gaming       Install gaming tools\n  ltool clean        Deep system cleanup\n  ltool help         Show this help\n\nInterconnected:\n  From ltool, launch lget to browse & install 150+ packages\n  Quick stacks call lget internally" \
+    20 64
+}
+
+# ─── WHIPTAIL MENU ──────────────────────────────────────────────────────────
+
+whiptail_menu() {
+  while true; do
+    local choice
+    choice=$(wrun --title "LTOOL - Linux System Toolkit" \
+      --menu "Select an option:" \
+      18 58 8 \
+      "UPDATE"   "System update & cleanup" \
+      "INFO"     "System information (CPU, RAM, disk)" \
+      "LGET"     "Launch lget package manager" \
+      "DEV"      "Quick stack: Development" \
+      "MEDIA"    "Quick stack: Media tools" \
+      "GAMING"   "Quick stack: Gaming tools" \
+      "CLEAN"    "Deep cleanup (temp, journal, cache)" \
+      "HELP"     "Show help & usage")
+
+    local exit_code=$?
+    [ "$exit_code" != 0 ] && clear && exit 0
+
+    case "$choice" in
+      UPDATE) system_update; read -p "Press Enter..." ;;
+      INFO)   system_info ;;
+      LGET)   clear; lget; read -p "Press Enter..." ;;
+      DEV)    quick_dev; read -p "Press Enter..." ;;
+      MEDIA)  quick_media; read -p "Press Enter..." ;;
+      GAMING) quick_gaming; read -p "Press Enter..." ;;
+      CLEAN)  deep_cleanup; read -p "Press Enter..." ;;
+      HELP)   show_help_whiptail ;;
+    esac
+  done
+}
+
+# ─── TEXT MENU (fallback) ───────────────────────────────────────────────────
+
+text_menu() {
+  while true; do
+    clear
+    echo -e "${CYAN}========================================${NC}"
+    echo -e "${GREEN}      LTOOL - Linux Toolkit             ${NC}"
+    echo -e "${CYAN}========================================${NC}"
+    echo ""
+    echo " 1) System Update & Cleanup"
+    echo " 2) System Information"
+    echo " 3) Launch lget (package manager)"
+    echo " 4) Quick Stack: Development"
+    echo " 5) Quick Stack: Media Tools"
+    echo " 6) Quick Stack: Gaming Tools"
+    echo " 7) Deep Cleanup"
+    echo " 8) Help"
+    echo " 9) Exit"
+    echo ""
+    read -p "Choice [1-9]: " CHOICE
+
+    case $CHOICE in
+      1) system_update; read -p "Press Enter..." ;;
+      2) system_info ;;
+      3) clear; lget; read -p "Press Enter..." ;;
+      4) quick_dev; read -p "Press Enter..." ;;
+      5) quick_media; read -p "Press Enter..." ;;
+      6) quick_gaming; read -p "Press Enter..." ;;
+      7) deep_cleanup; read -p "Press Enter..." ;;
+      8) show_help_text; read -p "Press Enter..." ;;
+      9) clear; exit 0 ;;
+      *) read -p "Invalid. Press Enter..." ;;
+    esac
+  done
+}
+
+# ─── MAIN ───────────────────────────────────────────────────────────────────
+
+case "${1:-}" in
+  update|upgrade)   system_update ;;
+  info|sysinfo)     system_info ;;
+  dev|development)  quick_dev ;;
+  media)            quick_media ;;
+  gaming)           quick_gaming ;;
+  clean|cleanup)    deep_cleanup ;;
+  help|-h|--help)   show_help_text ;;
+  ""|menu|interactive)
+    if $USE_WHIPTAIL; then
+      whiptail_menu
+    else
+      text_menu
+    fi
     ;;
   *)
     echo -e "${RED}Unknown option: $1${NC}"
-    show_help
+    show_help_text
+    exit 1
     ;;
 esac

@@ -19,6 +19,12 @@ for script in lget ltool lhelp; do
 done
 
 echo -e "\n${YELLOW}[2/4]${NC} Removing package database..."
+for f in packages.sh packages.db; do
+  if [[ -f "/usr/local/bin/$f" ]]; then
+    sudo rm "/usr/local/bin/$f"
+    echo -e "${GREEN}  Removed /usr/local/bin/$f${NC}"
+  fi
+done
 DATA_DIR="/usr/local/share/linux-script"
 if [[ -d "$DATA_DIR" ]]; then
   sudo rm -rf "$DATA_DIR"

@@ -53,6 +53,8 @@ done
 echo -e "\n${YELLOW}[5/6]${NC} Updating package database..."
 for f in packages.sh packages.db; do
   if [[ -f "$SCRIPT_DIR/$f" ]]; then
+    sudo cp "$SCRIPT_DIR/$f" "/usr/local/bin/$f"
+    sudo mkdir -p "$DATA_DIR"
     sudo cp "$SCRIPT_DIR/$f" "$DATA_DIR/$f"
     echo -e "${GREEN}  $f${NC}"
   fi

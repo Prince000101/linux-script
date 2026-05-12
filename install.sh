@@ -19,8 +19,6 @@ sudo apt install -y curl wget gpg 2>&1 | tail -1
 
 echo -e "\n${YELLOW}[2/5]${NC} Installing toolkit scripts..."
 SCRIPT_DIR="./scripts"
-DATA_DIR="/usr/local/share/linux-script"
-sudo mkdir -p "$DATA_DIR"
 
 for script in lget ltool lhelp; do
   if [[ -f "$SCRIPT_DIR/$script" ]]; then
@@ -32,11 +30,14 @@ done
 
 echo -e "${YELLOW}  Installing package database...${NC}"
 if [[ -f "$SCRIPT_DIR/packages.sh" ]]; then
-  sudo cp "$SCRIPT_DIR/packages.sh" "$DATA_DIR/packages.sh"
+  sudo cp "$SCRIPT_DIR/packages.sh" "/usr/local/bin/packages.sh"
+  sudo mkdir -p "/usr/local/share/linux-script"
+  sudo cp "$SCRIPT_DIR/packages.sh" "/usr/local/share/linux-script/packages.sh"
   echo -e "${GREEN}  packages.sh${NC}"
 fi
 if [[ -f "packages.db" ]]; then
-  sudo cp "packages.db" "$DATA_DIR/packages.db"
+  sudo mkdir -p "/usr/local/share/linux-script"
+  sudo cp "packages.db" "/usr/local/share/linux-script/packages.db"
   echo -e "${GREEN}  packages.db${NC}"
 fi
 

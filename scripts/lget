@@ -1,15 +1,19 @@
 #!/bin/bash
 set -euo pipefail
 
-DATA_DIR="/usr/local/share/linux-script"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DATA_DIRS=("$SCRIPT_DIR" "/usr/local/share/linux-script" "/usr/local/bin")
 
-if [[ -f "$SCRIPT_DIR/packages.sh" ]]; then
-  source "$SCRIPT_DIR/packages.sh"
-elif [[ -f "$DATA_DIR/packages.sh" ]]; then
-  source "$DATA_DIR/packages.sh"
-else
-  echo "Error: packages.sh not found (looked in $SCRIPT_DIR and $DATA_DIR)" >&2
+for dir in "${DATA_DIRS[@]}"; do
+  if [[ -f "$dir/packages.sh" ]]; then
+    source "$dir/packages.sh"
+    break
+  fi
+done
+
+if [[ ${#PKGS[@]} -eq 0 ]]; then
+  echo "Error: packages.sh not found. Run install.sh first." >&2
+  echo "Looked in: ${DATA_DIRS[*]}" >&2
   exit 1
 fi
 

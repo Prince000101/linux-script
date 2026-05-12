@@ -48,6 +48,7 @@ if [[ -f "$SCRIPT_DIR/packages.sh" ]]; then
   echo -e "${GREEN}  packages.sh${NC}"
 fi
 if [[ -f "packages.db" ]]; then
+  sudo cp "packages.db" "/usr/local/bin/packages.db"
   sudo mkdir -p "/usr/local/share/linux-script"
   sudo cp "packages.db" "/usr/local/share/linux-script/packages.db"
   echo -e "${GREEN}  packages.db${NC}"

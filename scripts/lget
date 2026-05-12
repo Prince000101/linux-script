@@ -175,16 +175,15 @@ get_categories() {
     for c in "${cats[@]}"; do [ "$c" = "$cat" ] && found=true && break; done
     $found || cats+=("$cat")
   done
-  echo "${cats[@]}"
+  printf '%s\n' "${cats[@]}"
 }
 
 get_pkgs_by_cat() {
-  local cat="$1" out=()
+  local cat="$1"
   for entry in "${PKGS[@]}"; do
     IFS='|' read -r name desc cat2 _ <<< "$entry"
-    [ "$cat2" = "$cat" ] && out+=("$entry")
+    [ "$cat2" = "$cat" ] && echo "$entry"
   done
-  echo "${out[@]}"
 }
 
 get_cat_count() {
@@ -434,7 +433,8 @@ wrun() {
 
 whiptail_checklist() {
   local cat="$1"
-  local entries=($(get_pkgs_by_cat "$cat"))
+  local entries=()
+  mapfile -t entries < <(get_pkgs_by_cat "$cat")
   local total=${#entries[@]}
 
   local args=()
@@ -485,7 +485,8 @@ whiptail_checklist() {
 }
 
 whiptail_main_menu() {
-  local categories=($(get_categories))
+  local categories=()
+  mapfile -t categories < <(get_categories)
   local cat_count=${#categories[@]}
 
   while true; do
@@ -633,7 +634,8 @@ show_banner() {
 
 show_cat_menu_text() {
   local cat="$1"
-  local entries=($(get_pkgs_by_cat "$cat"))
+  local entries=()
+  mapfile -t entries < <(get_pkgs_by_cat "$cat")
   local total=${#entries[@]}
 
   while true; do
@@ -695,7 +697,8 @@ show_cat_menu_text() {
 }
 
 show_main_menu_text() {
-  local categories=($(get_categories))
+  local categories=()
+  mapfile -t categories < <(get_categories)
   local cat_count=${#categories[@]}
 
   while true; do

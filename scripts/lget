@@ -225,7 +225,7 @@ is_installed() {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 USE_WHIPTAIL=false
-command -v whiptail &>/dev/null && USE_WHIPTAIL=true
+command -v whiptail &>/dev/null && [ "$(tput lines 2>/dev/null || echo 24)" -ge 12 ] && [ "$(tput cols 2>/dev/null || echo 80)" -ge 50 ] && USE_WHIPTAIL=true
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # INSTALL / REMOVE ENGINE
@@ -414,14 +414,27 @@ remove_one() {
 # INTERACTIVE UI — WHIPTAIL (mouse/arrow-key friendly)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+wrun() {
+  local tmpfile
+  tmpfile=$(mktemp /tmp/lget_whiptail.XXXXXX 2>/dev/null) || return 1
+  whiptail "$@" >"$tmpfile"
+  local ret=$?
+  local val
+  val=$(<"$tmpfile" 2>/dev/null)
+  rm -f "$tmpfile"
+  printf '%s' "$val"
+  return "$ret"
+}
+
 whiptail_checklist() {
   local cat="$1"
   local entries=($(get_pkgs_by_cat "$cat"))
   local total=${#entries[@]}
 
   local args=()
-  local height=24
-  [ "$total" -lt 15 ] && height=$((total + 8))
+  local height=$((total + 10))
+  [ "$height" -gt 20 ] && height=20
+  [ "$height" -lt 10 ] && height=10
 
   for entry in "${entries[@]}"; do
     IFS='|' read -r name desc _ _ <<< "$entry"
@@ -431,36 +444,27 @@ whiptail_checklist() {
   done
 
   local result
-  result=$(whiptail --title "LGET — $cat ($total packages)" \
-    --backtitle "Linux Package Manager — Use SPACE to toggle, ENTER to confirm" \
-    --checklist "\nSelect packages to install (already installed = pre-checked):" \
-    "$height" 72 "$total" "${args[@]}" 3>&1 1>&2 2>&3)
-
-  local exit_code=$?
-  [ "$exit_code" != 0 ] && return 1
+  result=$(wrun --title "LGET - $cat ($total)" \
+    --checklist "SPACE=toggle  ENTER=confirm" \
+    "$height" 70 "$total" "${args[@]}") || return 1
 
   local selected_names=()
   eval "selected_names=($result)"
-
   [ ${#selected_names[@]} -eq 0 ] && return 1
 
-  # Build summary and confirm
   local summary=""
   local count=1
   for name in "${selected_names[@]}"; do
     local entry=$(find_pkg "$name")
-    IFS='|' read -r _ desc _ src <<< "$entry"
-    summary+="$count. $name — $desc\n"
+    IFS='|' read -r _ desc _ _ <<< "$entry"
+    summary+="$count. $name - $desc\n"
     ((count++))
   done
 
   whiptail --title "Confirm Installation" \
-    --yesno "You are about to install ${#selected_names[@]} package(s):\n\n$summary\n\nProceed?" \
-    16 60
-  local confirm=$?
-  [ "$confirm" != 0 ] && return 1
+    --yesno "Install ${#selected_names[@]} package(s):\n\n$summary\n\nProceed?" \
+    16 60 || return 1
 
-  # Install
   clear
   for name in "${selected_names[@]}"; do
     local entry=$(find_pkg "$name")
@@ -468,12 +472,10 @@ whiptail_checklist() {
   done
 
   echo ""
-  echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${GREEN}==============================${NC}"
   echo -e "${GREEN}  All done! ${#selected_names[@]} package(s) processed.${NC}"
-  echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo ""
-  read -p "  Press Enter to continue..."
-  return 0
+  echo -e "${GREEN}==============================${NC}"
+  read -p "Press Enter..."
 }
 
 whiptail_main_menu() {
@@ -487,17 +489,16 @@ whiptail_main_menu() {
       local cnt=$(get_cat_count "$c")
       args+=("$c" "$cnt packages")
     done
-    args+=("---" "──────────")
+    args+=("---" "----------")
     args+=("SEARCH" "Search all packages")
     args+=("INSTALLED" "Show installed packages")
     args+=("UPDATE" "System update & cleanup")
     args+=("HELP" "Help & usage")
 
     local choice
-    choice=$(whiptail --title "LGET — Linux Package Manager" \
-      --backtitle "Select a category with ↑↓ arrows, press ENTER" \
-      --menu "\nBrowse packages by category:" \
-      22 60 14 "${args[@]}" 3>&1 1>&2 2>&3)
+    choice=$(wrun --title "LGET - Linux Package Manager" \
+      --menu "Browse packages by category:" \
+      20 58 14 "${args[@]}")
 
     local exit_code=$?
     [ "$exit_code" != 0 ] && clear && exit 0
@@ -509,9 +510,7 @@ whiptail_main_menu() {
       HELP)      whiptail_help ;;
       ---)       ;;
       *)
-        if [ -n "$choice" ]; then
-          whiptail_checklist "$choice"
-        fi
+        [ -n "$choice" ] && whiptail_checklist "$choice"
         ;;
     esac
   done
@@ -519,7 +518,7 @@ whiptail_main_menu() {
 
 whiptail_search() {
   local query
-  query=$(whiptail --title "Search Packages" --inputbox "\nEnter search term:" 8 60 3>&1 1>&2 2>&3)
+  query=$(wrun --title "Search Packages" --inputbox "Enter search term:" 8 60) || return
   [ -z "$query" ] && return
 
   local matches=()
@@ -528,7 +527,7 @@ whiptail_search() {
     IFS='|' read -r name desc cat _ <<< "$entry"
     if echo "$name $desc" | grep -qi "$query"; then
       matches+=("$name")
-      match_descs+=("$name  —  $desc  [$cat]")
+      match_descs+=("$name - $desc [$cat]")
     fi
   done
 
@@ -543,33 +542,26 @@ whiptail_search() {
   done
 
   local result
-  result=$(whiptail --title "Search Results (${#matches[@]} matches)" \
-    --backtitle "SPACE to select, ENTER to install" \
-    --checklist "\nMatches for '$query':" \
-    18 72 10 "${args[@]}" 3>&1 1>&2 2>&3)
-
-  local exit_code=$?
-  [ "$exit_code" != 0 ] && return
+  result=$(wrun --title "Search Results (${#matches[@]})" \
+    --checklist "SPACE=toggle  ENTER=install" \
+    18 70 10 "${args[@]}") || return
 
   local selected_names=()
   eval "selected_names=($result)"
   [ ${#selected_names[@]} -eq 0 ] && return
 
-  # Confirm
   local summary=""
   local count=1
   for name in "${selected_names[@]}"; do
     local entry=$(find_pkg "$name")
     IFS='|' read -r _ desc _ _ <<< "$entry"
-    summary+="$count. $name — $desc\n"
+    summary+="$count. $name - $desc\n"
     ((count++))
   done
 
   whiptail --title "Confirm Installation" \
     --yesno "Install ${#selected_names[@]} package(s)?\n\n$summary\n\nProceed?" \
-    14 60
-  local confirm=$?
-  [ "$confirm" != 0 ] && return
+    14 60 || return
 
   clear
   for name in "${selected_names[@]}"; do
@@ -578,10 +570,10 @@ whiptail_search() {
   done
 
   echo ""
-  echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${GREEN}==============================${NC}"
   echo -e "${GREEN}  All done! ${#selected_names[@]} package(s) processed.${NC}"
-  echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  read -p "  Press Enter..."
+  echo -e "${GREEN}==============================${NC}"
+  read -p "Press Enter..."
 }
 
 whiptail_installed() {
@@ -590,14 +582,14 @@ whiptail_installed() {
   for entry in "${PKGS[@]}"; do
     IFS='|' read -r name desc _ _ <<< "$entry"
     if is_installed "$name"; then
-      installed_list+="  $name — $desc\n"
+      installed_list+="  $name - $desc\n"
       ((count++))
     fi
   done
   [ "$count" -eq 0 ] && installed_list="  No packages from the database are installed yet."
   whiptail --title "Installed Packages" \
     --msgbox "Total: $count installed\n\n$installed_list" \
-    20 72
+    20 70
 }
 
 whiptail_update() {
@@ -615,8 +607,8 @@ whiptail_update() {
 }
 
 whiptail_help() {
-  whiptail --title "LGET — Help" \
-    --msgbox "LGET — Linux Package Manager\n\nInteractive mode:\n  lget              Browse & install packages\n\nCLI mode:\n  lget install <pkg>  Install packages\n  lget remove <pkg>   Remove a package\n  lget search <query>  Search packages\n  lget list           Show installed\n  lget info <pkg>     Package details\n  lget update         System update\n\nQuick aliases:\n  lin = install, lrm = remove\n  lse = search, ll = list\n  li = info, lup = update" \
+  whiptail --title "LGET - Help" \
+    --msgbox "LGET - Linux Package Manager\n\nInteractive:\n  lget              Browse & install packages\n\nCLI:\n  lget install <pkg>  Install\n  lget remove <pkg>   Remove\n  lget search <query>  Search\n  lget list           Show installed\n  lget info <pkg>     Package details\n  lget update         System update\n\nQuick aliases:\n  lin=install  lrm=remove  lse=search\n  ll=list      li=info     lup=update" \
     20 64
 }
 
@@ -932,7 +924,7 @@ case "${1:-}" in
   help|-h|--help) show_help_text ;;
   *)
     if $USE_WHIPTAIL; then
-      whiptail_main_menu
+      whiptail_main_menu || show_main_menu_text
     else
       show_main_menu_text
     fi
